@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+@theme {
+    --color-theme-primary: #F7EFDA;
+    --color-theme-primary-hover: #EFE4C7;
+    --color-theme-white: #FFFFFF;
+    --color-theme-black: #2C2C2B;
+    --color-theme-red: #D16969;
+    --color-theme-green: #6A9955;
+    --color-theme-light-gray: #F9F8F7;
+    --color-theme-medium-gray: #EEEEEC;
+    --color-theme-hover-gray: #F2F2EF;
+    --color-theme-dark-gray: #8F8F8F;
+
+
+    --color-almost-white: #FAFAF9;
+    --color-almost-black: #404040;
+    --color-theme-secondary: #F7F3E8;
+    --color-gray: #9ca3af;
+    --color-light-gray: #f5f5f4;
+
+    --font-serif: "Merriweather", serif;
+    --font-sans: "Noto Sans", sans;
+}
+
+.theme-border {
+    border-width: 1px;
+    border-color: var(--color-theme-medium-gray)
+}
+
+.theme-border-right {
+    border-right-width: 1px;
+    border-color: var(--color-theme-medium-gray)
+}
+
+.theme-shadow {
+    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.1);
+}
+
+.theme-shadow-inset {
+    box-shadow: inset 0px 0px 5px 0px rgba(0, 0, 0, 0.1);
+}
+
+.theme-h1 {
+    font-size: 32px;
+    color: var(--color-almost-black);
+    font-family: var(--font-serif)
+}
+
+@import "tailwindcss";
