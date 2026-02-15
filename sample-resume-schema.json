@@ -1,0 +1,103 @@
+{
+    "name": "Jake Ryan",
+    "phone": "123-456-7890",
+    "email": "jake@su.edu",
+    "linkedinUrl": "https://linkedin.com/in/jake",
+    "linkedinLabel": "linkedin.com/in/jake",
+    "githubUrl": "https://github.com/jake",
+    "githubLabel": "github.com/jake",
+    "education": [
+      {
+        "institution": "Southwestern University",
+        "location": "Georgetown, TX",
+        "degree": "Bachelor of Arts in Computer Science, Minor in Business",
+        "dates": "Aug. 2018 -- May 2021"
+      },
+      {
+        "institution": "Blinn College",
+        "location": "Bryan, TX",
+        "degree": "Associate's in Liberal Arts",
+        "dates": "Aug. 2014 -- May 2018"
+      }
+    ],
+    "experience": [
+      {
+        "role": "Undergraduate Research Assistant",
+        "dates": "June 2020 -- Present",
+        "company": "Texas A\\&M University",
+        "location": "College Station, TX",
+        "highlights": [
+          "Developed a REST API using FastAPI and PostgreSQL to store data from learning management systems",
+          "Developed a full-stack web application using Flask, React, PostgreSQL and Docker to analyze GitHub data",
+          "Explored ways to visualize GitHub collaboration in a classroom setting"
+        ]
+      },
+      {
+        "role": "Information Technology Support Specialist",
+        "dates": "Sep. 2018 -- Present",
+        "company": "Southwestern University",
+        "location": "Georgetown, TX",
+        "highlights": [
+          "Communicate with managers to set up campus computers used on campus",
+          "Assess and troubleshoot computer problems brought by students, faculty and staff",
+          "Maintain upkeep of computers, classroom equipment, and 200 printers across campus"
+        ]
+      },
+      {
+        "role": "Artificial Intelligence Research Assistant",
+        "dates": "May 2019 -- July 2019",
+        "company": "Southwestern University",
+        "location": "Georgetown, TX",
+        "highlights": [
+          "Explored methods to generate video game dungeons based off of \\emph{The Legend of Zelda}",
+          "Developed a game in Java to test the generated dungeons",
+          "Contributed 50K+ lines of code to an established codebase via Git",
+          "Conducted a human subject study to determine which video game dungeon generation technique is enjoyable",
+          "Wrote an 8-page paper and gave multiple presentations on-campus",
+          "Presented virtually to the World Conference on Computational Intelligence"
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "name": "Gitlytics",
+        "technologies": "Python, Flask, React, PostgreSQL, Docker",
+        "dates": "June 2020 -- Present",
+        "highlights": [
+          "Developed a full-stack web application using with Flask serving a REST API with React as the frontend",
+          "Implemented GitHub OAuth to get data from user’s repositories",
+          "Visualized GitHub data to show collaboration",
+          "Used Celery and Redis for asynchronous tasks"
+        ]
+      },
+      {
+        "name": "Simple Paintball",
+        "technologies": "Spigot API, Java, Maven, TravisCI, Git",
+        "dates": "May 2018 -- May 2020",
+        "highlights": [
+          "Developed a Minecraft server plugin to entertain kids during free time for a previous job",
+          "Published plugin to websites gaining 2K+ downloads and an average 4.5/5-star review",
+          "Implemented continuous delivery using TravisCI to build the plugin upon new a release",
+          "Collaborated with Minecraft server administrators to suggest features and get feedback about the plugin"
+        ]
+      }
+    ],
+    "skills": [
+      {
+        "category": "Languages",
+        "list": "Java, Python, C/C++, SQL (Postgres), JavaScript, HTML/CSS, R"
+      },
+      {
+        "category": "Frameworks",
+        "list": "React, Node.js, Flask, JUnit, WordPress, Material-UI, FastAPI"
+      },
+      {
+        "category": "Developer Tools",
+        "list": "Git, Docker, TravisCI, Google Cloud Platform, VS Code, Visual Studio, PyCharm, IntelliJ, Eclipse"
+      },
+      {
+        "category": "Libraries",
+        "list": "pandas, NumPy, Matplotlib"
+      }
+    ]
+  }
