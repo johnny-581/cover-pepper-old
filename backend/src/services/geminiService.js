@@ -1,14 +1,18 @@
-import { GoogleGenAI, Type } from '@google/genai';
-import { ENV } from '../config/env.js';
+import { GoogleGenAI, Type } from "@google/genai";
+import { ENV } from "../config/env.js";
 
 const ai = new GoogleGenAI({ apiKey: ENV.GEMINI_API_KEY });
 
-export async function generateCoverLetterLatex(jobDestription, templateLatex, currDate) {
-    try {
-        const prompt = `
+export async function generateCoverLetterLatex(
+  jobDestription,
+  templateLatex,
+  currDate
+) {
+  try {
+    const prompt = `
 You are given a job description in plain text and a cover letter in latex. Update this old cover letter based on the job description.
 
-Update only the following fields (if relavent to the old template):
+Update the following fields (if relavent to the old template):
 - Company name
 - Company address
 - Position title
@@ -16,7 +20,9 @@ Update only the following fields (if relavent to the old template):
 - Date (change to current date: ${currDate}. Note the format of the old date, the new date should be in the same format)
 
 Make sure to replace every relavent occurence of these fields, including in the letter body.
-Otherwise, do not change the old cover letter in any way, even if it doesn't fully suit the new job yet. Return only latex.
+
+Also tailor the cover letter to the job description in subtle ways, but only when approprite. Emphasize aspects of the cover letter that are most relevant to the job.
+Only make SMALL edits and keep the original tone. DO NOT invent any information that is not already present in the cover letter.
 
 Job description text:
 ---
@@ -29,24 +35,26 @@ ${templateLatex}
 ---
 `;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt
-        });
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+    });
 
-        const parsedLatex = response.text?.replaceAll('```latex', '').replaceAll('```', '').trim();
+    const parsedLatex = response.text
+      ?.replaceAll("```latex", "")
+      .replaceAll("```", "")
+      .trim();
 
-        return parsedLatex;
-    } catch (error) {
-        console.error("Error generating cover letter latex: ", error);
-        throw error;
-    }
+    return parsedLatex;
+  } catch (error) {
+    console.error("Error generating cover letter latex: ", error);
+    throw error;
+  }
 }
 
-
 export async function generateCoverLetterMeta(coverLetter) {
-    try {
-        const prompt = `
+  try {
+    const prompt = `
 You are given a cover letter in latex. Generate the following metadata for it:
 - A title for the application combining company name and position title.
     Example: if the company is Apple Inc. and the position is F25 Junior Software Developer Co-Op 171853B, an appropriate title would be "Apple Junior Software Developer Co-Op".
@@ -64,28 +72,30 @@ ${coverLetter}
 ---
 `;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        title: { type: Type.STRING },
-                        company: { type: Type.STRING },
-                        position: { type: Type.STRING },
-                        date: { type: Type.STRING },
-                    },
-                },
-            },
-        });
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            company: { type: Type.STRING },
+            position: { type: Type.STRING },
+            date: { type: Type.STRING },
+          },
+        },
+      },
+    });
 
-        console.log(`\nGemini generate meta response:\n ${JSON.stringify(response)}`);
+    console.log(
+      `\nGemini generate meta response:\n ${JSON.stringify(response)}`
+    );
 
-        return JSON.parse(response.text);
-    } catch (error) {
-        console.error("Error generating cover letter meta: ", error);
-        throw error;
-    }
+    return JSON.parse(response.text);
+  } catch (error) {
+    console.error("Error generating cover letter meta: ", error);
+    throw error;
+  }
 }
