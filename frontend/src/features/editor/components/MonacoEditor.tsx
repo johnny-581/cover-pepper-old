@@ -189,6 +189,13 @@ export default function MonacoEditor({
             alwaysConsumeMouseWheel: false,
           },
           overviewRulerLanes: 0,
+          // Disable autocomplete/suggestions dropdown
+          quickSuggestions: false,
+          suggestOnTriggerCharacters: false,
+          acceptSuggestionOnCommitCharacter: false,
+          acceptSuggestionOnEnter: "off",
+          wordBasedSuggestions: "off",
+          parameterHints: { enabled: false },
         }}
       />
     </div>
