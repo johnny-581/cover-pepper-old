@@ -12,6 +12,8 @@ export async function generateCoverLetterLatex(
     const prompt = `
 You are given a job description in plain text and a cover letter in latex. Update this old cover letter based on the job description.
 
+**IMPORTANT: DO NOT output any text apart from the latex code**
+
 Update the following fields (if relavent to the old template):
 - Company name
 - Company address
