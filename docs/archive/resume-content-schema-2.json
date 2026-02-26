@@ -1,0 +1,146 @@
+{
+  "body": [
+    {
+      "type": "field",
+      "name": "Name",
+      "displayName": "Name",
+      "content": [{ "type": "text", "text": "Johnny Dong" }]
+    },
+    {
+      "type": "field",
+      "name": "Email",
+      "displayName": "Email",
+      "content": [{ "type": "text", "text": "johnny@dong.com" }]
+    },
+    {
+      "type": "field",
+      "name": "Phone",
+      "displayName": "Phone",
+      "content": [{ "type": "text", "text": "123-456-7890" }]
+    },
+    {
+      "type": "field",
+      "name": "Location",
+      "displayName": "Location",
+      "content": [{ "type": "text", "text": "Vancouver, BC" }]
+    },
+    {
+      "type": "list",
+      "name": "Socials",
+      "items": [
+        {
+          "type": "field",
+          "name": "social",
+          "displayName": "LinkedIn",
+          "content": [
+            {
+              "type": "text",
+              "text": "https://www.linkedin.com/in/johnny-dong"
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "name": "social",
+          "displayName": "GitHub",
+          "content": [
+            { "type": "text", "text": "https://github.com/johnny-dong" }
+          ]
+        },
+        {
+          "type": "field",
+          "name": "social",
+          "displayName": "Website",
+          "content": [{ "type": "text", "text": "https://www.johnny-dong.com" }]
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "name": "Sections",
+      "items": [
+        {
+          "type": "group",
+          "name": "Section",
+          "content": [
+            {
+              "type": "field",
+              "name": "Section Heading",
+              "displayName": "Section Heading",
+              "content": [{ "type": "text", "text": "Education" }]
+            },
+            {
+              "type": "list",
+              "name": "Section Entries",
+              "items": [
+                {
+                  "type": "group",
+                  "name": "Entry",
+                  "content": [
+                    {
+                      "type": "field",
+                      "name": "Entry Heading",
+                      "displayName": "School Name",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "University of British Columbia"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "name": "Subheading",
+                      "displayName": "Degree",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Bachelor of Science Computer Science"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "name": "Start Date",
+                      "displayName": "Expected Grad Date",
+                      "content": [{ "type": "text", "text": "December 2026" }]
+                    },
+                    {
+                      "type": "field",
+                      "name": "End Date",
+                      "displayName": "",
+                      "content": null
+                    },
+                    {
+                      "type": "field",
+                      "name": "GPA",
+                      "displayName": "GPA",
+                      "content": [{ "type": "text", "text": "3.8" }]
+                    },
+                    {
+                      "type": "list",
+                      "name": "Highlights",
+                      "items": [
+                        {
+                          "type": "field",
+                          "name": "Highlight",
+                          "displayName": "Relevant Coursework",
+                          "content": [
+                            {
+                              "type": "text",
+                              "text": "Relevant Courses: Applied Machine Learning (Python)"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
