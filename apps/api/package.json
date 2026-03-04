@@ -1,0 +1,30 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.30.2",
+  "dependencies": {
+    "@clerk/fastify": "^2.6.26",
+    "@fastify/cors": "^11.2.0",
+    "@prisma/client": "^7.4.1",
+    "@trpc/client": "^11.10.0",
+    "@trpc/server": "^11.10.0",
+    "dotenv": "^17.3.1",
+    "fastify": "^5.7.4",
+    "zod": "^4.3.6",
+    "@pepper-apply/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.1",
+    "prisma": "^7.4.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

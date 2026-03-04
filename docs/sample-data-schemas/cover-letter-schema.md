@@ -10,10 +10,10 @@
 
 \opening{\field{greeting}}
 
-\begin{list}{body}
+\begin{each}{body}
 \field{paragraph}
 
-\end{list}
+\end{each}
 
 \closing{\field{closing}}
 ```
@@ -111,25 +111,28 @@
 }
 ```
 
-## File Content
+## File Version
 
 ```json
 {
-  "version": "v_x9y8z7w6",
-  "fields": {
-    "company": "Stripe",
-    "hiringManager": "John Collison",
-    "date": "February 2026",
-    "greeting": "Dear Mr. Collison,",
-    "closing": "Sincerely,"
-  },
-  "lists": {
-    "body": [
-      "I'm writing to express my interest in the Senior Engineer role at Stripe.",
-      "In my current role at Shopify, I led the migration of the payments pipeline to an <b>event-driven architecture</b>, reducing p99 latency by 40%.",
-      "I'd welcome the opportunity to discuss how my experience aligns with your team's goals."
-    ]
-  },
-  "groups": {}
+  "id": "v_x9y8z7w6",
+  "createdAt": "2026-02-01T00:00:00.000Z",
+  "content": {
+    "fields": {
+      "company": "Stripe",
+      "hiringManager": "John Collison",
+      "date": "February 2026",
+      "greeting": "Dear Mr. Collison,",
+      "closing": "Sincerely,"
+    },
+    "lists": {
+      "body": [
+        "I'm writing to express my interest in the Senior Engineer role at Stripe.",
+        "In my current role at Shopify, I led the migration of the payments pipeline to an <b>event-driven architecture</b>, reducing p99 latency by 40%.",
+        "I'd welcome the opportunity to discuss how my experience aligns with your team's goals."
+      ]
+    },
+    "groups": {}
+  }
 }
 ```

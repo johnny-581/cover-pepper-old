@@ -207,8 +207,7 @@ apps/web/
 │   ├── components/                # Truly shared UI — not feature-specific
 │   │   ├── ui/                    # shadcn/ui component re-exports
 │   │   └── layout/
-│   │       ├── AppLayout.tsx      # Sidebar + main panel shell
-│   │       └── TopBar.tsx         # "Saved" indicator, Preview button, user avatar
+│   │       └── AppLayout.tsx      # Sidebar + main panel shell
 │   │
 │   └── styles/
 │       └── globals.css
