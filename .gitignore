@@ -2,3 +2,15 @@ node_modules
 
 # Turbo
 .turbo
+
+# pnpm local store
+.pnpm-store
+
+# AI assistant local config
+.claude
+
+# TypeScript build info
+*.tsbuildinfo
+
+# macOS
+.DS_Store
