@@ -1,8 +1,9 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { splitListItem } from "@tiptap/pm/schema-list";
-import { Selection } from "@tiptap/pm/state";
+import { Selection, type EditorState, type Transaction } from "@tiptap/pm/state";
 import { ListItemView } from "../components/node-views/ListItemView";
+import { CARET_JUMP_UNDO_META } from "./caret-jump-undo";
 
 type ListItemContext = {
   listItemDepth: number;
@@ -27,6 +28,29 @@ function getListItemContext(selectionFrom: {
 
 function isListItemEmpty(listItemNode: { textContent: string }): boolean {
   return listItemNode.textContent.trim().length === 0;
+}
+
+function isCaretAtStartOfItem(selectionFrom: { parentOffset: number }): boolean {
+  return selectionFrom.parentOffset === 0;
+}
+
+function moveSelectionBeforeList(
+  state: EditorState,
+  dispatch: (tr: Transaction) => void,
+  listStartPos: number,
+  fromPos: number,
+): boolean {
+  const selection = Selection.near(state.doc.resolve(listStartPos), -1);
+  if (selection.from >= listStartPos) {
+    return false;
+  }
+
+  dispatch(
+    state.tr
+      .setSelection(selection)
+      .setMeta(CARET_JUMP_UNDO_META, { from: fromPos, to: selection.from }),
+  );
+  return true;
 }
 
 export const ListItemNode = Node.create({
@@ -76,8 +100,30 @@ export const ListItemNode = Node.create({
         const listNode = $from.node(listDepth);
         const listItemNode = $from.node(listItemDepth);
         const listItemIndex = $from.index(listDepth);
+        const isFirstItem = listItemIndex === 0;
+        const itemIsEmpty = isListItemEmpty(listItemNode);
+        const caretAtStart = isCaretAtStartOfItem($from);
 
-        if (!isListItemEmpty(listItemNode)) return false;
+        if (!caretAtStart) return false;
+
+        if (isFirstItem && !itemIsEmpty) {
+          // Keep list boundaries fixed: do not let Backspace lift/join this list.
+          return true;
+        }
+
+        if (!itemIsEmpty) return false;
+
+        if (isFirstItem && listNode.childCount === 1) {
+          const listStartPos = $from.before(listDepth);
+          moveSelectionBeforeList(
+            state,
+            editor.view.dispatch,
+            listStartPos,
+            state.selection.from,
+          );
+          return true;
+        }
+
         if (listNode.childCount <= 1) {
           // Keep one editable item in every list.
           return true;
