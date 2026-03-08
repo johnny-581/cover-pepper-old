@@ -1,9 +1,14 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
+import type { Node as PMNode } from "@tiptap/pm/model";
 import { splitListItem } from "@tiptap/pm/schema-list";
 import { Selection, type EditorState, type Transaction } from "@tiptap/pm/state";
 import { ListItemView } from "../components/node-views/ListItemView";
 import { CARET_JUMP_UNDO_META } from "./caret-jump-undo";
+import {
+  findNextEditableTarget,
+  type EditableBlock,
+} from "./utils/previous-editable-block";
 
 type ListItemContext = {
   listItemDepth: number;
@@ -53,6 +58,54 @@ function moveSelectionBeforeList(
   return true;
 }
 
+function resolveNextTargetForEmptyItem(
+  state: EditorState,
+  listNode: PMNode,
+  listItemNode: PMNode,
+  listItemIndex: number,
+  listItemPos: number,
+): EditableBlock | null {
+  const hasNextSibling = listItemIndex < listNode.childCount - 1;
+  if (hasNextSibling) {
+    const nextSiblingPos = listItemPos + listItemNode.nodeSize;
+    const nextSiblingNode = listNode.child(listItemIndex + 1);
+    return { pos: nextSiblingPos, node: nextSiblingNode };
+  }
+
+  const listItemEndPos = listItemPos + listItemNode.nodeSize - 1;
+  return findNextEditableTarget(state.doc, listItemEndPos);
+}
+
+function dispatchSelectionJumpWithUndoMeta(
+  state: EditorState,
+  dispatch: (tr: Transaction) => void,
+  toPos: number,
+): void {
+  dispatch(
+    state.tr
+      .setSelection(Selection.near(state.doc.resolve(toPos), -1))
+      .setMeta(CARET_JUMP_UNDO_META, {
+        from: state.selection.from,
+        to: toPos,
+      })
+      .scrollIntoView(),
+  );
+}
+
+function deleteCurrentItemAndJump(
+  state: EditorState,
+  dispatch: (tr: Transaction) => void,
+  listItemPos: number,
+  listItemNodeSize: number,
+  targetEndPos: number,
+): void {
+  const tr = state.tr.delete(listItemPos, listItemPos + listItemNodeSize);
+  const mappedTargetPos = tr.mapping.map(targetEndPos, -1);
+  const selectionPos = Math.max(1, Math.min(mappedTargetPos, tr.doc.content.size));
+  tr.setSelection(Selection.near(tr.doc.resolve(selectionPos), -1));
+  dispatch(tr.scrollIntoView());
+}
+
 export const ListItemNode = Node.create({
   name: "listItem",
   content: "paragraph",
@@ -79,14 +132,71 @@ export const ListItemNode = Node.create({
   addKeyboardShortcuts() {
     return {
       Enter: ({ editor }) => {
-        const listItemType = editor.state.schema.nodes.listItem;
-        if (!listItemType) return false;
+        const { state } = editor;
+        const { $from, empty } = state.selection;
 
-        return splitListItem(listItemType)(
-          editor.state,
-          editor.view.dispatch,
-          editor.view,
+        const listItemType = state.schema.nodes.listItem;
+        if (!listItemType) return false;
+        if (!empty) {
+          return splitListItem(listItemType)(
+            state,
+            editor.view.dispatch,
+            editor.view,
+          );
+        }
+
+        const context = getListItemContext($from);
+        if (!context) {
+          return splitListItem(listItemType)(
+            state,
+            editor.view.dispatch,
+            editor.view,
+          );
+        }
+
+        const { listItemDepth, listDepth } = context;
+        const listNode = $from.node(listDepth);
+        const listItemNode = $from.node(listItemDepth);
+        const itemIsEmpty = isListItemEmpty(listItemNode);
+        if (!itemIsEmpty) {
+          return splitListItem(listItemType)(
+            state,
+            editor.view.dispatch,
+            editor.view,
+          );
+        }
+
+        const listItemIndex = $from.index(listDepth);
+        const listItemPos = $from.before(listItemDepth);
+        const nextTarget = resolveNextTargetForEmptyItem(
+          state,
+          listNode,
+          listItemNode,
+          listItemIndex,
+          listItemPos,
         );
+        if (!nextTarget) {
+          return true;
+        }
+
+        const targetEndPos = nextTarget.pos + nextTarget.node.nodeSize - 1;
+        if (listNode.childCount === 1) {
+          dispatchSelectionJumpWithUndoMeta(
+            state,
+            editor.view.dispatch,
+            targetEndPos,
+          );
+          return true;
+        }
+
+        deleteCurrentItemAndJump(
+          state,
+          editor.view.dispatch,
+          listItemPos,
+          listItemNode.nodeSize,
+          targetEndPos,
+        );
+        return true;
       },
       Backspace: ({ editor }) => {
         const { state } = editor;

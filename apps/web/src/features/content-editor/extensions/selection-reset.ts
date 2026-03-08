@@ -1,23 +1,36 @@
 import { Extension } from "@tiptap/core";
-import type { Node as PMNode } from "@tiptap/pm/model";
-import { Plugin } from "@tiptap/pm/state";
-import { Slice } from "@tiptap/pm/model";
-import { TextSelection } from "@tiptap/pm/state";
+import { Slice, type Node as PMNode } from "@tiptap/pm/model";
+import { Plugin, TextSelection } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 import {
-  analyzeStructuredSelection,
-  type AnchorPath,
-} from "../utils/analyze-structured-selection";
+  analyzeSelection,
+} from "../utils/analyze-selection";
+import {
+  clampSelectionPos,
+  type SelectionAnchor,
+} from "../utils/analyze-selection-helpers";
 
 type DocumentMeta = {
   template: import("@pepper-apply/shared").Template;
   groupListLayouts: Record<string, import("@pepper-apply/shared").LayoutNode[]>;
 };
 
-export const StructuredSelectionReset = Extension.create({
-  name: "structuredSelectionReset",
+type Insertion =
+  | { type: "text"; text: string }
+  | { type: "slice"; slice: Slice };
+
+export const SelectionReset = Extension.create({
+  name: "selectionReset",
 
   addProseMirrorPlugins() {
+    const runReset = (view: EditorView, insertion?: Insertion): boolean => {
+      return handleSelectionReset(
+        view,
+        getDocumentMeta(this.editor.storage),
+        insertion,
+      );
+    };
+
     return [
       new Plugin({
         props: {
@@ -26,25 +39,17 @@ export const StructuredSelectionReset = Extension.create({
               return false;
             }
 
-            return handleStructuredSelectionReset(view, getDocumentMeta(this.editor.storage));
+            return runReset(view);
           },
           handleTextInput: (view, _from, _to, text) => {
-            return handleStructuredSelectionReset(
-              view,
-              getDocumentMeta(this.editor.storage),
-              { type: "text", text },
-            );
+            return runReset(view, { type: "text", text });
           },
-          handlePaste: (view, event, slice) => {
+          handlePaste: (view, _event, slice) => {
             if (!(slice instanceof Slice)) {
               return false;
             }
 
-            return handleStructuredSelectionReset(
-              view,
-              getDocumentMeta(this.editor.storage),
-              { type: "slice", slice },
-            );
+            return runReset(view, { type: "slice", slice });
           },
         },
       }),
@@ -52,22 +57,31 @@ export const StructuredSelectionReset = Extension.create({
   },
 });
 
-function handleStructuredSelectionReset(
+function handleSelectionReset(
   view: EditorView,
   meta: DocumentMeta | null,
-  insertion?:
-    | { type: "text"; text: string }
-    | { type: "slice"; slice: Slice },
+  insertion?: Insertion,
 ): boolean {
   if (!meta) return false;
 
-  const analysis = analyzeStructuredSelection(view.state.doc, view.state.selection, meta.template);
+  const analysis = analyzeSelection(
+    view.state.doc,
+    view.state.selection,
+    meta.template,
+  );
   if (!analysis) return false;
 
   const nextDoc = view.state.schema.nodeFromJSON(analysis.doc);
-  let tr = view.state.tr.replaceWith(0, view.state.doc.content.size, nextDoc.content);
+  let tr = view.state.tr.replaceWith(
+    0,
+    view.state.doc.content.size,
+    nextDoc.content,
+  );
 
-  const anchorPos = clampSelectionPos(tr.doc.content.size, resolveAnchorPos(tr.doc, analysis.anchor));
+  const anchorPos = clampSelectionPos(
+    tr.doc.content.size,
+    resolveAnchorPos(tr.doc, analysis.anchor),
+  );
   tr = tr.setSelection(TextSelection.create(tr.doc, anchorPos));
 
   if (insertion?.type === "text") {
@@ -80,10 +94,7 @@ function handleStructuredSelectionReset(
   return true;
 }
 
-function resolveAnchorPos(
-  doc: PMNode,
-  anchor: AnchorPath,
-): number {
+function resolveAnchorPos(doc: PMNode, anchor: SelectionAnchor): number {
   let node = doc;
   let pos = 0;
 
@@ -105,13 +116,7 @@ function resolveAnchorPos(
   return pos + 1 + Math.min(anchor.textOffset, node.content.size);
 }
 
-function clampSelectionPos(maxContentSize: number, pos: number): number {
-  return Math.max(1, Math.min(pos, maxContentSize));
-}
-
-function getDocumentMeta(
-  storage: unknown,
-): DocumentMeta | null {
+function getDocumentMeta(storage: unknown): DocumentMeta | null {
   if (!storage || typeof storage !== "object") return null;
   const meta = (storage as Record<string, unknown>).documentMeta;
   if (!meta || typeof meta !== "object") return null;

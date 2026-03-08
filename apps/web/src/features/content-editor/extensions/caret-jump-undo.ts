@@ -62,7 +62,7 @@ export const CaretJumpUndo = Extension.create({
           init: () => [],
           apply: (tr, jumpStack) => {
             const jumpMeta = tr.getMeta(CARET_JUMP_UNDO_META);
-            if (isCaretJumpUndoMeta(jumpMeta)) {
+            if (!tr.docChanged && isCaretJumpUndoMeta(jumpMeta)) {
               return [...jumpStack, jumpMeta];
             }
 

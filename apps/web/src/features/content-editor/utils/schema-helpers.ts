@@ -38,3 +38,20 @@ export function buildGroupListLayoutMap(
   }
   return map;
 }
+
+export function findGroupListLayout(
+  layout: Template["layout"],
+  groupListId: string,
+): Template["layout"] | null {
+  for (const node of layout) {
+    if (node.type !== "groupList") continue;
+    if (node.groupListId === groupListId) {
+      return node.layout;
+    }
+
+    const nested = findGroupListLayout(node.layout, groupListId);
+    if (nested) return nested;
+  }
+
+  return null;
+}

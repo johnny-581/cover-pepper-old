@@ -1,9 +1,11 @@
 import { Node, mergeAttributes, type Editor } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import type { Node as PMNode, ResolvedPos } from "@tiptap/pm/model";
+import { Selection } from "@tiptap/pm/state";
 import { FieldView } from "../components/node-views/FieldView";
 import {
   createEndSelectionForBlock,
+  findNextEditableTarget,
   findPreviousEditableBlock,
 } from "./utils/previous-editable-block";
 import { CARET_JUMP_UNDO_META } from "./caret-jump-undo";
@@ -53,16 +55,42 @@ function handleDeleteFromEmptyField(editor: Editor): boolean {
   }
 
   const selection = createEndSelectionForBlock(state.doc, previousBlock);
+  dispatchSelectionJump(editor, selection.from);
+  return true;
+}
+
+function handleEnterFromEmptyField(editor: Editor): boolean {
+  const { state } = editor;
+  const { empty, $from } = state.selection;
+
+  if (!empty) return false;
+
+  const fieldContext = getFieldContext($from);
+  if (!fieldContext) return false;
+  if (!isFieldEmpty(fieldContext.fieldNode)) return false;
+
+  const fieldEndPos = fieldContext.fieldStartPos + fieldContext.fieldNode.nodeSize - 1;
+  const nextTarget = findNextEditableTarget(state.doc, fieldEndPos);
+  if (!nextTarget) {
+    return true;
+  }
+
+  const selection = createEndSelectionForBlock(state.doc, nextTarget);
+  dispatchSelectionJump(editor, selection.from);
+  return true;
+}
+
+function dispatchSelectionJump(editor: Editor, nextSelectionPos: number): void {
+  const { state } = editor;
   editor.view.dispatch(
     state.tr
-      .setSelection(selection)
+      .setSelection(Selection.near(state.doc.resolve(nextSelectionPos), -1))
       .setMeta(CARET_JUMP_UNDO_META, {
         from: state.selection.from,
-        to: selection.from,
+        to: nextSelectionPos,
       })
       .scrollIntoView(),
   );
-  return true;
 }
 
 export const FieldNode = Node.create({
@@ -103,6 +131,7 @@ export const FieldNode = Node.create({
 
   addKeyboardShortcuts() {
     return {
+      Enter: ({ editor }) => handleEnterFromEmptyField(editor),
       Backspace: ({ editor }) => handleDeleteFromEmptyField(editor),
       Delete: ({ editor }) => handleDeleteFromEmptyField(editor),
     };

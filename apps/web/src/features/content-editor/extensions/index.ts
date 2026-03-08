@@ -8,7 +8,7 @@ import { GroupListNode } from "./group-list";
 import { GroupListInstanceNode } from "./group-list-instance";
 import { ListNode } from "./list";
 import { ListItemNode } from "./list-item";
-import { StructuredSelectionReset } from "./structured-selection-reset";
+import { SelectionReset } from "./selection-reset";
 import { CaretJumpUndo } from "./caret-jump-undo";
 
 const CustomDocument = Node.create({
@@ -42,6 +42,6 @@ export function createDocumentExtensions() {
     ListNode,
     ListItemNode,
     CaretJumpUndo,
-    StructuredSelectionReset,
+    SelectionReset,
   ];
 }

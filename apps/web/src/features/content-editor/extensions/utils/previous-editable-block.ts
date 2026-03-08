@@ -1,7 +1,8 @@
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { Selection } from "@tiptap/pm/state";
 
-const EDITABLE_BLOCK_NAMES = new Set(["field", "list"]);
+const PREVIOUS_EDITABLE_BLOCK_NAMES = new Set(["field", "list"]);
+const NEXT_EDITABLE_TARGET_NAMES = new Set(["field", "listItem"]);
 
 export type EditableBlock = {
   pos: number;
@@ -19,7 +20,7 @@ export function findPreviousEditableBlock(
       return false;
     }
 
-    if (EDITABLE_BLOCK_NAMES.has(node.type.name)) {
+    if (PREVIOUS_EDITABLE_BLOCK_NAMES.has(node.type.name)) {
       previous = { pos, node };
     }
 
@@ -35,4 +36,30 @@ export function createEndSelectionForBlock(
 ): Selection {
   const endPos = block.pos + block.node.nodeSize - 1;
   return Selection.near(doc.resolve(endPos), -1);
+}
+
+export function findNextEditableTarget(
+  doc: PMNode,
+  afterPos: number,
+): EditableBlock | null {
+  let next: EditableBlock | null = null;
+
+  doc.descendants((node, pos) => {
+    if (next) {
+      return false;
+    }
+
+    if (pos <= afterPos) {
+      return undefined;
+    }
+
+    if (NEXT_EDITABLE_TARGET_NAMES.has(node.type.name)) {
+      next = { pos, node };
+      return false;
+    }
+
+    return undefined;
+  });
+
+  return next;
 }
