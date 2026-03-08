@@ -191,47 +191,65 @@
 
 /* ── Content editor structural layout ───────────────────────────────── */
 
-div[data-type="field-row"] {
+/* Rows */
+div[data-type="row"] {
   display: flex;
   align-items: center;
   gap: 0.25rem;
   width: 100%;
 }
 
-div[data-type="group-section"] {
+/* Field sizing inside rows */
+.node-field[data-sizing="fill"] {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.node-field[data-sizing="hug"] {
+  flex-shrink: 0;
+}
+
+/* Group lists */
+div[data-type="group-list"] {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-div[data-type="group-instance"] {
+div[data-type="group-list-instance"] {
   padding: 0.125rem 0;
 }
 
-div[data-type="content-list"] {
+/* Inline lists: NodeViewContent carries `flex` classes when inline=true.
+   Scope to the list-level contentDOM so nested list-item contentDOMs stay block. */
+.list[data-inline="true"]
+  > *
+  > [data-node-view-content].flex
+  > [data-node-view-content-react] {
   display: flex;
-  flex-direction: column;
-  gap: 0;
-  /* background: green; */
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-/* Bulleted list items */
-.field-block[data-display="bulleted"] div[data-type="content-list-item"] {
-  display: flex;
-  align-items: flex-start;
-  padding-left: 0.25rem;
-  padding-top: 1px;
-  padding-bottom: 1px;
+.list > [data-node-view-content].flex {
+  width: 100%;
 }
 
-.field-block[data-display="bulleted"]
-  div[data-type="content-list-item"]::before {
-  content: "\2022";
-  user-select: none;
+/* Placeholder via pseudo-element — not part of the DOM, never selectable */
+[data-placeholder]::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  white-space: nowrap;
   color: var(--muted-foreground);
-  margin-right: 0.5rem;
-  margin-top: 0.125rem;
-  font-size: 0.875rem;
-  line-height: 1.25;
-  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+/* Field placeholder centers vertically to match field content */
+.field [data-placeholder]::before {
+  top: 50%;
+  transform: translateY(-50%);
 }

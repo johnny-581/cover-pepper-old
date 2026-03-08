@@ -1,10 +1,10 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { FieldBlockView } from "../components/node-views/FieldBlockView";
+import { FieldView } from "../components/node-views/FieldView";
 
-export const FieldBlockNode = Node.create({
-  name: "fieldBlock",
-  content: "paragraph | contentList",
+export const FieldNode = Node.create({
+  name: "field",
+  content: "paragraph",
   isolating: true,
 
   addAttributes() {
@@ -13,32 +13,28 @@ export const FieldBlockNode = Node.create({
       sizing: { default: "fill" },
       font: { default: "sans-sm" },
       background: { default: "none" },
-      display: { default: "normal" },
       bold: { default: false },
       italic: { default: false },
       underline: { default: false },
       placeholder: { default: "" },
-      isList: { default: false },
-      listId: { default: null },
     };
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-type="field-block"]' }];
+    return [{ tag: 'div[data-type="field"]' }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return [
-      "div",
-      mergeAttributes(HTMLAttributes, { "data-type": "field-block" }),
-      0,
-    ];
+    return ["div", mergeAttributes(HTMLAttributes, { "data-type": "field" }), 0];
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(FieldBlockView, {
+    return ReactNodeViewRenderer(FieldView, {
       as: "div",
-      className: "field-block",
+      className: "field",
+      attrs: ({ node }) => ({
+        "data-sizing": String(node.attrs.sizing ?? "fill"),
+      }),
     });
   },
 });

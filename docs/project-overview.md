@@ -32,16 +32,20 @@ Each block is an editable field. Fields show grey placeholder text when empty an
 
 Blocks can be arranged side by side on the same line (useful for resume layouts). In this mode, block positions and the set of available fields are fixed — they're determined by the template. You can't add, remove, or rearrange blocks here, except within lists.
 
-**Standalone fields vs. lists**
+**Fields, lists, and group lists**
 
-A field can either be standalone or part of a list — this is defined by the template, not the editor.
+A **field** is the atomic unit of rich text input. It only ever contains a single paragraph — no nested lists. All editable text areas are ultimately fields.
 
-- **List of fields:** A repeating single field (e.g. a list of bullet points). Press Enter in a field to add a new item; press Delete in an empty field to remove it (the last item cannot be deleted).
-- **List of groups:** A repeating set of multiple fields (e.g. a job entry with title, company, date, and bullets). These show Notion-like drag and add handles on hover and support drag-and-drop reordering.
+A **list** is a first-class layout element containing repeating field items (e.g. bullet points or tags). Lists can appear in two contexts:
 
-Cross-block text selection in a list of fields works just like in Notion. For example, If I select parts of bullet A and bullet B simultaneously and press delete, the editor should combine A and B to a single bullet with the selected text portions deleted.
+- **Inside a row** → items render horizontally. Each item hugs its content; the list itself can be "hug" or "fill" within the row.
+- **Standalone** (not inside a row) → items render vertically (e.g. bullet points). Can be "plain" or "bulleted".
 
-Decorative texts (e.g. a "–" between two date fields) can appear between blocks as defined in the layout.
+Press Enter in a list item to add a new item; press Backspace in an empty item to remove it (the last item cannot be deleted). Cross-item text selection + delete merges items, just like in Notion.
+
+A **group list** is a repeating set of multiple fields (e.g. a job entry with title, company, date, tags, and bullets). These show Notion-like drag and add handles on hover and support drag-and-drop reordering. Groups can only exist inside group lists and can contain rows, lists, and nested group lists.
+
+Decorative texts (e.g. a "–" between two date fields) can appear between blocks within a row.
 
 ## Layout Mode
 
@@ -54,7 +58,8 @@ In this mode you can:
 - **Reorder fields** via drag and drop
 - **Edit placeholder strings** by clicking into a field
 - **Add decorative Texts** between fields (e.g. " – " between Start Date and End Date)
-- **Style fields** — font (sans/serif, lg/md/sm), background colour (grey/yellow/none), and display style (bulleted or normal)
+- **Style fields** — font (sans/serif, lg/md/sm) and background colour (grey/yellow/none)
+- **Style lists** — display style (plain or bulleted), item font and background
 
 **Layout rules:** Every line must be fully covered by blocks — no empty horizontal space. If multiple blocks share a line, one is marked as **fill** (stretches to fill remaining space) and the rest **hug** their content. This ensures clicking anywhere on the canvas lands your cursor in a field.
 

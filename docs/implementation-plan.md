@@ -21,80 +21,98 @@
 
 ## 2. Type Definitions
 
-### Template Schema
+### Template (Schema)
 
 ```typescript
-type TemplateSchema = {
+type Template = {
   fields: FieldDef[];
   lists: ListDef[];
-  groups: GroupDef[];
-  layout: LayoutRow[];
+  groupLists: GroupListDef[];
+  layout: LayoutNode[];
 };
 
 type FieldDef = { id: string; optional?: boolean };
 type ListDef = { id: string; itemId: string };
-type GroupDef = {
+type GroupListDef = {
   id: string;
   fields: FieldDef[];
   lists: ListDef[];
-  groups: GroupDef[];
+  groupLists: GroupListDef[];
 };
 ```
 
 ### Layout
 
+A layout is a tree of nodes. Fields are atomic (paragraph only). Lists are first-class layout elements whose rendering direction is determined by context: inside a row → horizontal, standalone → vertical.
+
 ```typescript
-type LayoutRow = FieldRow | GroupSection;
-type FieldRow = { type: "fieldRow"; blocks: LayoutBlock[] };
-type GroupSection = {
-  type: "groupSection";
-  groupId: string;
-  layout: LayoutRow[];
+type LayoutNode = Row | List | GroupList;
+
+type Row = { type: "row"; blocks: RowBlock[] };
+
+type GroupList = {
+  type: "groupList";
+  groupListId: string;
+  layout: LayoutNode[];
 };
 
-type LayoutBlock = FieldBlock | DecoratorBlock;
-type DecoratorBlock = { type: "decorator"; text: string };
+type RowBlock = Field | Decorator | List;
 
-type FieldBlock = {
+type Field = {
   type: "field";
   fieldId: string;
   sizing: "fill" | "hug";
   placeholder: string;
-  style: BlockStyle; // how the field looks in the editor
+  style: FieldStyle;      // how the field looks in the editor
   outputStyle: OutputStyle; // how the field renders in the PDF
 };
 
-type BlockStyle = {
-  font:
-    | "sans-lg"
-    | "sans-md"
-    | "sans-sm"
-    | "serif-lg"
-    | "serif-md"
-    | "serif-sm";
-  background: "none" | "grey" | "yellow";
-  display: "normal" | "bulleted";
+type Decorator = { type: "decorator"; text: string };
+
+// Single type for both inline (in-row) and standalone lists.
+type List = {
+  type: "list";
+  listId: string;
+  sizing: "fill" | "hug";
+  placeholder: string;
+  display: "plain" | "bulleted";
+  itemStyle: ItemStyle;
 };
 
+type ItemStyle = {
+  font: FontToken;
+  background: BackgroundToken;
+  outputStyle: OutputStyle;
+};
+
+type FieldStyle = {
+  font: FontToken;
+  background: BackgroundToken;
+};
+
+type FontToken =
+  | "sans-lg" | "sans-md" | "sans-sm"
+  | "serif-lg" | "serif-md" | "serif-sm";
+type BackgroundToken = "none" | "grey" | "yellow";
 type OutputStyle = { bold: boolean; italic: boolean; underline: boolean };
 ```
 
 ### File Content
 
-Content is split into `fields`, `lists`, and `groups` so it's self-describing — no schema needed to interpret it.
+Content is split into `fields`, `lists`, and `groupLists` so it's self-describing — no schema needed to interpret it.
 
 ```typescript
 type FileContent = {
-  fields: Record<string, string>; // richtext HTML
-  lists: Record<string, string[]>; // richtext HTML
-  groups: Record<string, GroupInstance[]>;
+  fields: Record<string, string>;     // richtext HTML
+  lists: Record<string, string[]>;    // richtext HTML
+  groupLists: Record<string, GroupListInstance[]>;
 };
 
-type GroupInstance = {
+type GroupListInstance = {
   _key: string; // nanoid(8)
   fields: Record<string, string>;
   lists: Record<string, string[]>;
-  groups: Record<string, GroupInstance[]>;
+  groupLists: Record<string, GroupListInstance[]>;
 };
 ```
 
@@ -131,7 +149,7 @@ Creating a version clones the active content. Switching versions swaps content; 
 
 ## 3. Output Styling
 
-`outputStyle` on a `FieldBlock` controls how that field renders in the PDF. It wraps the field's entire rendered content in `\textbf{}`, `\textit{}`, and/or `\underline{}`.
+`outputStyle` on a `Field` controls how that field renders in the PDF. It wraps the field's entire rendered content in `\textbf{}`, `\textit{}`, and/or `\underline{}`.
 
 **Render order:** First, convert the field's richtext HTML to LaTeX (`<b>` → `\textbf{}`, etc.). Then wrap the result with any `outputStyle` flags. Nested bold in LaTeX is harmless — it collapses.
 
@@ -159,9 +177,9 @@ Takes a LaTeX template + `FileContent` → final LaTeX string.
 
 All commands resolve IDs relative to the nearest enclosing `\begin{each}` — no dot notation needed. The engine uses a scope stack: each `\begin{each}` pushes, each `\end{each}` pops.
 
-**Resolution order** (consistent across `\field`, `\begin{each}`, and `\begin{if}`): check `scope.fields[id]`, then `scope.groups[id]`, then `scope.lists[id]`.
+**Resolution order** (consistent across `\field`, `\begin{each}`, and `\begin{if}`): check `scope.fields[id]`, then `scope.groupLists[id]`, then `scope.lists[id]`.
 
-**ID uniqueness:** Within each scope (top-level or inside a `GroupDef`), all field, list, and group IDs must be unique across all three namespaces. Validate on template save — reject duplicates to prevent silent shadowing.
+**ID uniqueness:** Within each scope (top-level or inside a `GroupListDef`), all field, list, and group list IDs must be unique across all three namespaces. Validate on template save — reject duplicates to prevent silent shadowing.
 
 ### HTML → LaTeX
 
@@ -181,7 +199,7 @@ The layout references field IDs from the schema. Since the Layout Editor is defe
 
 **On template save**, run a validator that checks every `fieldId` and `groupId` in the layout exists in the schema, and every schema field appears in the layout (warning if missing).
 
-**Field added in LaTeX:** Auto-add to schema + append a default `FieldBlock` at the end of the relevant layout scope.
+**Field added in LaTeX:** Auto-add to schema + append a default `Field` at the end of the relevant layout scope.
 
 **Field removed from LaTeX:** Remove from schema + layout. Warn about orphaned content (don't delete it — user may re-add the field).
 
@@ -189,13 +207,13 @@ The layout references field IDs from the schema. Since the Layout Editor is defe
 
 ## 6. Content Editor
 
-Renders the layout as a tree of React components: `FieldRow` → flex row, `FieldBlock` → inline rich text editor (Tiptap or similar), `DecoratorBlock` → static text, `GroupSection` → recursive with drag handles.
+Renders the layout tree as Tiptap nodes: `Row` → flex row, `Field` → atomic rich text (paragraph only), `Decorator` → static text, `List` → repeating items (horizontal when inline, vertical when standalone), `GroupList` → recursive instances with drag handles.
 
-**Rich text:** All fields use the same editor component. Supported marks: bold, italic, underline, hyperlink. Notion-style floating toolbar on selection. Content stored as HTML strings — inline only, no block-level HTML.
+**Rich text:** All fields and list items use the same rich text editing. Supported marks: bold, italic, underline, hyperlink. Notion-style floating toolbar on selection. Content stored as HTML strings — inline only, no block-level HTML.
 
-**Lists of fields** (e.g. bullets): Enter adds, Backspace in empty removes (min 1). Cross-item selection + delete merges items.
+**Lists** (e.g. tags, bullets, body paragraphs): Enter adds an item, Backspace in empty removes (min 1). Cross-item selection + delete merges items. Lists inside a row render items horizontally; standalone lists render vertically. Display can be "plain" or "bulleted".
 
-**Lists of groups** (e.g. job entries): Drag handles + `+` button on hover. Drag to reorder.
+**Group lists** (e.g. job entries, resume sections): Drag handles + `+` button on hover. Drag to reorder. Each instance contains its own layout of rows, lists, and nested group lists.
 
 **Standalone fields:** Fixed position, determined by layout. No add/remove/reorder.
 
@@ -217,7 +235,7 @@ Per-application. Operates on content, not the template. User pastes a job descri
 
 **What changes:** Cover letter body paragraphs. Resume highlights, ordering, and tags. Structural fields (title, dates, location) are untouched.
 
-**Process:** Select most relevant previous application → clone its content into a new version → AI edits the structured JSON → validate against schema → save as active version.
+**Process:** Select most relevant previous application → clone its content into a new version → AI edits the structured JSON → validate against template → save as active version.
 
 **Guardrails:** AI must return valid `FileContent` or the operation fails entirely. The AI prompt explicitly marks read-only vs. editable fields. User can always delete the tailored version to revert.
 
@@ -240,7 +258,7 @@ Application
 Template
 ├── id, type ("resume" | "coverLetter")
 ├── latex (template source)
-└── schema (TemplateSchema)
+└── template (Template)
 ```
 
 Template `type` is soft-enforced — the UI warns on mismatch but doesn't block.
@@ -255,6 +273,6 @@ A global **user profile** exists but isn't referenced by content or metadata. Us
 
 Until then, template creators edit the layout JSON directly or rely on auto-generated layouts from the sync process.
 
-When built, the Layout Editor will support: drag-and-drop reordering, inline placeholder editing, decorator management, `BlockStyle` configuration, `OutputStyle` toggles ("PDF: **B** _I_ U"), and fill/hug enforcement. It modifies only the `layout` property — field/list/group definitions are owned by the LaTeX Editor.
+When built, the Layout Editor will support: drag-and-drop reordering, inline placeholder editing, decorator management, `FieldStyle` / `ItemStyle` configuration, `OutputStyle` toggles ("PDF: **B** _I_ U"), list display mode (plain/bulleted), and fill/hug enforcement. It modifies only the `layout` property — field/list/group list definitions are owned by the LaTeX Editor.
 
 ---

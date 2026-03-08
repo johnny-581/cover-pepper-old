@@ -1,0 +1,3 @@
+- Simplify code where appropriate
+- Keep code modular and organized
+- For UI, use colors defined in globals.css and components in components/ui/. Feel free the write import and modify new componets from shadcn.

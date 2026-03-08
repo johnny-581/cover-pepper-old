@@ -3,20 +3,20 @@ import { useEditorStore } from "./store";
 import { createDocumentExtensions } from "./extensions";
 import { buildDocument } from "./utils/build-document";
 import { extractContent } from "./utils/extract-content";
-import { buildGroupLayoutMap } from "./utils/schema-helpers";
+import { buildGroupListLayoutMap } from "./utils/schema-helpers";
 
 export function ContentEditor() {
-  const schema = useEditorStore((s) => s.schema);
+  const template = useEditorStore((s) => s.template);
   const initialContent = useEditorStore((s) => s.content);
   const setContent = useEditorStore((s) => s.setContent);
 
   const editor = useEditor({
     extensions: createDocumentExtensions(),
-    content: buildDocument(schema, initialContent),
+    content: buildDocument(template, initialContent),
     onCreate: ({ editor }) => {
       (editor.storage as unknown as Record<string, unknown>).documentMeta = {
-        templateSchema: schema,
-        groupLayouts: buildGroupLayoutMap(schema.layout),
+        template,
+        groupListLayouts: buildGroupListLayoutMap(template.layout),
       };
     },
     onUpdate: ({ editor }) => {

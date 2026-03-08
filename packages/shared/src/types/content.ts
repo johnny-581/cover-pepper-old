@@ -1,12 +1,12 @@
 export type FileContent = {
   fields: Record<string, string>;
   lists: Record<string, string[]>;
-  groups: Record<string, GroupInstance[]>;
+  groupLists: Record<string, GroupListInstance[]>;
 };
 
-export type GroupInstance = {
+export type GroupListInstance = {
   _key: string;
   fields: Record<string, string>;
   lists: Record<string, string[]>;
-  groups: Record<string, GroupInstance[]>;
+  groupLists: Record<string, GroupListInstance[]>;
 };

@@ -1,16 +1,20 @@
 export type {
   FieldDef,
   ListDef,
-  GroupDef,
-  TemplateSchema,
-  LayoutRow,
-  FieldRow,
-  GroupSection,
-  LayoutBlock,
-  FieldBlock,
-  DecoratorBlock,
-  BlockStyle,
+  GroupListDef,
+  Template,
+  LayoutNode,
+  Row,
+  GroupList,
+  RowBlock,
+  Field,
+  Decorator,
+  List,
+  ItemStyle,
+  FieldStyle,
+  FontToken,
+  BackgroundToken,
   OutputStyle,
 } from "./types/template";
 
-export type { FileContent, GroupInstance } from "./types/content";
+export type { FileContent, GroupListInstance } from "./types/content";

@@ -24,8 +24,8 @@ Shared types, Zod schemas, and constants imported by both `web` and `api`. No ru
 packages/shared/
 ├── src/
 │   ├── types/
-│   │   ├── template.ts        # TemplateSchema, FieldDef, ListDef, GroupDef, LayoutRow, BlockStyle, OutputStyle
-│   │   ├── content.ts         # FileContent, GroupInstance
+│   │   ├── template.ts        # Template, FieldDef, ListDef, GroupListDef, LayoutNode, FieldStyle, List, ItemStyle, OutputStyle
+│   │   ├── content.ts         # FileContent, GroupListInstance
 │   │   ├── file.ts            # File, FileVersion
 │   │   ├── application.ts     # Application, ApplicationMetadata
 │   │   └── index.ts
@@ -79,7 +79,7 @@ apps/api/
 │   │   │   ├── renderer.ts        # AST walker with scope stack (\field, \begin{each}, \begin{if})
 │   │   │   └── html-to-latex.ts   # Richtext HTML → LaTeX; escapes special chars in text nodes
 │   │   ├── schema-sync/
-│   │   │   ├── index.ts           # Entry: diffs LaTeX parse against TemplateSchema + layout
+│   │   │   ├── index.ts           # Entry: diffs LaTeX parse against Template + layout
 │   │   │   ├── validator.ts       # Checks layout fieldIds/groupIds exist in schema; warns on missing
 │   │   │   └── reconciler.ts      # Auto-adds/removes fields from schema + layout on LaTeX save
 │   │   └── output-style.ts        # Wraps rendered LaTeX content with \textbf{}, \textit{}, \underline{} per outputStyle flags
@@ -98,7 +98,7 @@ apps/api/
 ### Key API decisions
 
 - The **templating engine** and **schema-sync** live in `api/lib` — they are server-side operations triggered on save and on PDF compilation. They are not shared with the frontend.
-- `ai/service.ts` is the only place that calls the LLM. It imports `FileContent` + `TemplateSchema` Zod schemas from `shared` to validate the AI's structured JSON output before saving.
+- `ai/service.ts` is the only place that calls the LLM. It imports `FileContent` + `Template` Zod schemas from `shared` to validate the AI's structured JSON output before saving.
 - The PDF compilation call is a thin HTTP call to the separate PDF service — one function in `files/service.ts`, no dedicated module needed yet.
 
 ---
@@ -134,10 +134,10 @@ apps/web/
 │   │   ├── content-editor/        # The block-based field editor (Content mode)
 │   │   │   ├── components/
 │   │   │   │   ├── ContentEditor.tsx        # Walks layout tree, renders rows + sections
-│   │   │   │   ├── FieldRow.tsx             # Flex row of FieldBlocks + DecoratorBlocks
-│   │   │   │   ├── FieldBlock.tsx           # Single Tiptap instance; applies outputStyle as base CSS
-│   │   │   │   ├── DecoratorBlock.tsx       # Static text (e.g. " – ", " | ")
-│   │   │   │   ├── GroupSection.tsx         # Recursive; renders drag handles + add button for group lists
+│   │   │   │   ├── FieldRow.tsx             # Flex row of Fields + Decorators
+│   │   │   │   ├── Field.tsx                # Single Tiptap instance; applies outputStyle as base CSS
+│   │   │   │   ├── Decorator.tsx            # Static text (e.g. " – ", " | ")
+│   │   │   │   ├── Group.tsx                # Recursive; renders drag handles + add button for group lists
 │   │   │   │   ├── ListField.tsx            # List-of-fields (bullets): Enter/Backspace behaviour
 │   │   │   │   └── RichTextToolbar.tsx      # Floating Notion-style toolbar (B / I / U / Link)
 │   │   │   ├── hooks/
@@ -234,7 +234,7 @@ apps/web/
 | `outputStyle` wrapping              | `apps/api/src/lib/output-style.ts`                                 |
 | Tiptap rich text fields             | `apps/web/src/features/content-editor/`                            |
 | Monaco LaTeX editor                 | `apps/web/src/features/latex-editor/`                              |
-| dnd-kit drag handles                | `apps/web/src/features/content-editor/components/GroupSection.tsx` |
+| dnd-kit drag handles                | `apps/web/src/features/content-editor/components/Group.tsx` |
 | Zustand stores                      | One `store.ts` per feature slice                                   |
 | shadcn/ui components                | `apps/web/src/components/ui/`                                      |
 | Clerk auth (server)                 | `apps/api/src/middleware/auth.ts`                                  |

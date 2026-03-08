@@ -1,75 +1,85 @@
 import type { Node as PMNode } from "@tiptap/pm/model";
-import type { FileContent, GroupInstance } from "@pepper-apply/shared";
+import type { FileContent, GroupListInstance } from "@pepper-apply/shared";
 
 type Scope = {
   fields: Record<string, string>;
   lists: Record<string, string[]>;
-  groups: Record<string, GroupInstance[]>;
+  groupLists: Record<string, GroupListInstance[]>;
 };
 
+let hasWarnedAboutMalformedField = false;
+
 export function extractContent(doc: PMNode): FileContent {
-  const result: FileContent = { fields: {}, lists: {}, groups: {} };
+  const result: FileContent = { fields: {}, lists: {}, groupLists: {} };
   doc.forEach((topNode) => {
-    extractLayoutRow(topNode, result);
+    extractLayoutNode(topNode, result);
   });
   return result;
 }
 
-function extractLayoutRow(node: PMNode, scope: Scope) {
-  if (node.type.name === "fieldRow") {
+function extractLayoutNode(node: PMNode, scope: Scope) {
+  if (node.type.name === "row") {
     node.forEach((child) => {
-      if (child.type.name === "fieldBlock") {
-        extractFieldBlock(child, scope);
+      if (child.type.name === "field") {
+        extractField(child, scope);
+      } else if (child.type.name === "list") {
+        extractList(child, scope);
       }
     });
-  } else if (node.type.name === "groupSection") {
-    const groupId = node.attrs.groupId as string;
-    if (!scope.groups[groupId]) {
-      scope.groups[groupId] = [];
+  } else if (node.type.name === "list") {
+    extractList(node, scope);
+  } else if (node.type.name === "groupList") {
+    const groupListId = node.attrs.groupListId as string;
+    if (!scope.groupLists[groupListId]) {
+      scope.groupLists[groupListId] = [];
     }
     node.forEach((instanceNode) => {
-      if (instanceNode.type.name === "groupInstance") {
-        const instance: GroupInstance = {
+      if (instanceNode.type.name === "groupListInstance") {
+        const instance: GroupListInstance = {
           _key: instanceNode.attrs.instanceKey as string,
           fields: {},
           lists: {},
-          groups: {},
+          groupLists: {},
         };
-        instanceNode.forEach((innerRow) => {
-          extractLayoutRow(innerRow, instance);
+        instanceNode.forEach((innerNode) => {
+          extractLayoutNode(innerNode, instance);
         });
-        scope.groups[groupId].push(instance);
+        scope.groupLists[groupListId].push(instance);
       }
     });
   }
 }
 
-function extractFieldBlock(node: PMNode, scope: Scope) {
-  const { fieldId, isList, listId } = node.attrs;
-
-  if (isList && listId) {
-    const items: string[] = [];
-    node.forEach((child) => {
-      if (child.type.name === "contentList") {
-        child.forEach((listItem) => {
-          if (listItem.type.name === "contentListItem") {
-            listItem.forEach((para) => {
-              items.push(paragraphToHTML(para));
-            });
-          }
-        });
-      }
-    });
-    scope.lists[listId as string] = items;
-  } else {
-    let html = "";
-    node.forEach((child) => {
-      if (child.type.name === "paragraph") {
-        html = paragraphToHTML(child);
-      }
-    });
-    scope.fields[fieldId as string] = html;
+function extractField(node: PMNode, scope: Scope) {
+  const { fieldId } = node.attrs;
+  if (!fieldId) {
+    if (typeof window !== "undefined" && !hasWarnedAboutMalformedField) {
+      hasWarnedAboutMalformedField = true;
+      console.warn("Skipping malformed field node without fieldId", node.toJSON());
+    }
+    return;
   }
+
+  let html = "";
+  node.forEach((child) => {
+    if (child.type.name === "paragraph") {
+      html = paragraphToHTML(child);
+    }
+  });
+  scope.fields[fieldId as string] = html;
+}
+
+function extractList(node: PMNode, scope: Scope) {
+  const { listId } = node.attrs;
+  const items: string[] = [];
+  node.forEach((listItem) => {
+    if (listItem.type.name === "listItem") {
+      listItem.forEach((para) => {
+        items.push(paragraphToHTML(para));
+      });
+    }
+  });
+  scope.lists[listId as string] = items;
 }
 
 /**

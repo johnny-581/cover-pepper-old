@@ -18,7 +18,7 @@
 \closing{\field{closing}}
 ```
 
-## Template Schema
+## Template
 
 ```json
 {
@@ -32,17 +32,17 @@
   "lists": [
     { "id": "body", "itemId": "paragraph" }
   ],
-  "groups": [],
+  "groupLists": [],
   "layout": [
     {
-      "type": "fieldRow",
+      "type": "row",
       "blocks": [
         {
           "type": "field",
           "fieldId": "company",
           "sizing": "fill",
           "placeholder": "Company Name",
-          "style": { "font": "sans-md", "background": "grey", "display": "normal" },
+          "style": { "font": "sans-md", "background": "grey" },
           "outputStyle": { "bold": true, "italic": false, "underline": false }
         },
         {
@@ -50,59 +50,58 @@
           "fieldId": "date",
           "sizing": "hug",
           "placeholder": "Date",
-          "style": { "font": "sans-sm", "background": "grey", "display": "normal" },
+          "style": { "font": "sans-sm", "background": "grey" },
           "outputStyle": { "bold": false, "italic": false, "underline": false }
         }
       ]
     },
     {
-      "type": "fieldRow",
+      "type": "row",
       "blocks": [
         {
           "type": "field",
           "fieldId": "hiringManager",
           "sizing": "fill",
           "placeholder": "Hiring Manager (optional)",
-          "style": { "font": "sans-sm", "background": "grey", "display": "normal" },
+          "style": { "font": "sans-sm", "background": "grey" },
           "outputStyle": { "bold": false, "italic": false, "underline": false }
         }
       ]
     },
     {
-      "type": "fieldRow",
+      "type": "row",
       "blocks": [
         {
           "type": "field",
           "fieldId": "greeting",
           "sizing": "fill",
           "placeholder": "Dear Hiring Manager,",
-          "style": { "font": "serif-md", "background": "none", "display": "normal" },
+          "style": { "font": "serif-md", "background": "none" },
           "outputStyle": { "bold": false, "italic": false, "underline": false }
         }
       ]
     },
     {
-      "type": "fieldRow",
-      "blocks": [
-        {
-          "type": "field",
-          "fieldId": "body",
-          "sizing": "fill",
-          "placeholder": "Write a paragraph...",
-          "style": { "font": "serif-sm", "background": "none", "display": "normal" },
-          "outputStyle": { "bold": false, "italic": false, "underline": false }
-        }
-      ]
+      "type": "list",
+      "listId": "body",
+      "sizing": "fill",
+      "placeholder": "Write a paragraph...",
+      "display": "plain",
+      "itemStyle": {
+        "font": "serif-sm",
+        "background": "none",
+        "outputStyle": { "bold": false, "italic": false, "underline": false }
+      }
     },
     {
-      "type": "fieldRow",
+      "type": "row",
       "blocks": [
         {
           "type": "field",
           "fieldId": "closing",
           "sizing": "fill",
           "placeholder": "Sincerely,",
-          "style": { "font": "serif-md", "background": "none", "display": "normal" },
+          "style": { "font": "serif-md", "background": "none" },
           "outputStyle": { "bold": false, "italic": false, "underline": false }
         }
       ]
@@ -110,6 +109,8 @@
   ]
 }
 ```
+
+Notice that **body** is now a standalone `list` (not inside a row), so its paragraphs render vertically with `display: "plain"` (no bullet markers). Previously, body was a field that secretly contained a list.
 
 ## File Version
 
@@ -132,7 +133,7 @@
         "I'd welcome the opportunity to discuss how my experience aligns with your team's goals."
       ]
     },
-    "groups": {}
+    "groupLists": {}
   }
 }
 ```

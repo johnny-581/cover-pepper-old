@@ -1,7 +1,7 @@
 import { NodeViewWrapper } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 
-export function DecoratorBlockView({ node }: NodeViewProps) {
+export function DecoratorView({ node }: NodeViewProps) {
   return (
     <NodeViewWrapper
       as="span"

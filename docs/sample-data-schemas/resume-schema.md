@@ -36,7 +36,7 @@
 \end{each}
 ```
 
-## Template Schema
+## Template
 
 ```json
 {
@@ -47,12 +47,12 @@
     { "id": "website", "optional": true }
   ],
   "lists": [],
-  "groups": [
+  "groupLists": [
     {
       "id": "sections",
       "fields": [{ "id": "heading" }],
       "lists": [],
-      "groups": [
+      "groupLists": [
         {
           "id": "entries",
           "fields": [
@@ -66,42 +66,34 @@
             { "id": "tags", "itemId": "tag" },
             { "id": "highlights", "itemId": "highlight" }
           ],
-          "groups": []
+          "groupLists": []
         }
       ]
     }
   ],
   "layout": [
     {
-      "type": "fieldRow",
+      "type": "row",
       "blocks": [
         {
           "type": "field",
           "fieldId": "name",
           "sizing": "fill",
           "placeholder": "Full Name",
-          "style": {
-            "font": "sans-lg",
-            "background": "none",
-            "display": "normal"
-          },
+          "style": { "font": "sans-lg", "background": "none" },
           "outputStyle": { "bold": true, "italic": false, "underline": false }
         }
       ]
     },
     {
-      "type": "fieldRow",
+      "type": "row",
       "blocks": [
         {
           "type": "field",
           "fieldId": "email",
           "sizing": "hug",
           "placeholder": "Email",
-          "style": {
-            "font": "sans-sm",
-            "background": "grey",
-            "display": "normal"
-          },
+          "style": { "font": "sans-sm", "background": "grey" },
           "outputStyle": { "bold": false, "italic": false, "underline": false }
         },
         { "type": "decorator", "text": " | " },
@@ -110,11 +102,7 @@
           "fieldId": "phone",
           "sizing": "hug",
           "placeholder": "Phone",
-          "style": {
-            "font": "sans-sm",
-            "background": "grey",
-            "display": "normal"
-          },
+          "style": { "font": "sans-sm", "background": "grey" },
           "outputStyle": { "bold": false, "italic": false, "underline": false }
         },
         { "type": "decorator", "text": " | " },
@@ -123,32 +111,24 @@
           "fieldId": "website",
           "sizing": "fill",
           "placeholder": "Website",
-          "style": {
-            "font": "sans-sm",
-            "background": "grey",
-            "display": "normal"
-          },
+          "style": { "font": "sans-sm", "background": "grey" },
           "outputStyle": { "bold": false, "italic": false, "underline": false }
         }
       ]
     },
     {
-      "type": "groupSection",
-      "groupId": "sections",
+      "type": "groupList",
+      "groupListId": "sections",
       "layout": [
         {
-          "type": "fieldRow",
+          "type": "row",
           "blocks": [
             {
               "type": "field",
               "fieldId": "heading",
               "sizing": "fill",
               "placeholder": "Section Name",
-              "style": {
-                "font": "sans-md",
-                "background": "yellow",
-                "display": "normal"
-              },
+              "style": { "font": "sans-md", "background": "yellow" },
               "outputStyle": {
                 "bold": true,
                 "italic": false,
@@ -158,22 +138,18 @@
           ]
         },
         {
-          "type": "groupSection",
-          "groupId": "entries",
+          "type": "groupList",
+          "groupListId": "entries",
           "layout": [
             {
-              "type": "fieldRow",
+              "type": "row",
               "blocks": [
                 {
                   "type": "field",
                   "fieldId": "title",
                   "sizing": "fill",
                   "placeholder": "Title / Degree",
-                  "style": {
-                    "font": "serif-md",
-                    "background": "none",
-                    "display": "normal"
-                  },
+                  "style": { "font": "serif-md", "background": "none" },
                   "outputStyle": {
                     "bold": true,
                     "italic": false,
@@ -185,11 +161,7 @@
                   "fieldId": "startDate",
                   "sizing": "hug",
                   "placeholder": "Start",
-                  "style": {
-                    "font": "sans-sm",
-                    "background": "grey",
-                    "display": "normal"
-                  },
+                  "style": { "font": "sans-sm", "background": "grey" },
                   "outputStyle": {
                     "bold": false,
                     "italic": true,
@@ -202,11 +174,7 @@
                   "fieldId": "endDate",
                   "sizing": "hug",
                   "placeholder": "End",
-                  "style": {
-                    "font": "sans-sm",
-                    "background": "grey",
-                    "display": "normal"
-                  },
+                  "style": { "font": "sans-sm", "background": "grey" },
                   "outputStyle": {
                     "bold": false,
                     "italic": true,
@@ -216,18 +184,14 @@
               ]
             },
             {
-              "type": "fieldRow",
+              "type": "row",
               "blocks": [
                 {
                   "type": "field",
                   "fieldId": "subtitle",
                   "sizing": "hug",
                   "placeholder": "Company / School",
-                  "style": {
-                    "font": "sans-sm",
-                    "background": "none",
-                    "display": "normal"
-                  },
+                  "style": { "font": "sans-sm", "background": "none" },
                   "outputStyle": {
                     "bold": false,
                     "italic": false,
@@ -240,11 +204,7 @@
                   "fieldId": "location",
                   "sizing": "fill",
                   "placeholder": "Location",
-                  "style": {
-                    "font": "sans-sm",
-                    "background": "none",
-                    "display": "normal"
-                  },
+                  "style": { "font": "sans-sm", "background": "none" },
                   "outputStyle": {
                     "bold": false,
                     "italic": true,
@@ -254,46 +214,41 @@
               ]
             },
             {
-              "type": "fieldRow",
+              "type": "row",
               "blocks": [
                 {
-                  "type": "field",
-                  "fieldId": "tags",
+                  "type": "list",
+                  "listId": "tags",
                   "sizing": "fill",
                   "placeholder": "Add a tag...",
-                  "style": {
+                  "display": "plain",
+                  "itemStyle": {
                     "font": "sans-sm",
                     "background": "grey",
-                    "display": "normal"
-                  },
-                  "outputStyle": {
-                    "bold": false,
-                    "italic": false,
-                    "underline": false
+                    "outputStyle": {
+                      "bold": false,
+                      "italic": false,
+                      "underline": false
+                    }
                   }
                 }
               ]
             },
             {
-              "type": "fieldRow",
-              "blocks": [
-                {
-                  "type": "field",
-                  "fieldId": "highlights",
-                  "sizing": "fill",
-                  "placeholder": "Add a highlight...",
-                  "style": {
-                    "font": "serif-sm",
-                    "background": "none",
-                    "display": "bulleted"
-                  },
-                  "outputStyle": {
-                    "bold": false,
-                    "italic": false,
-                    "underline": false
-                  }
+              "type": "list",
+              "listId": "highlights",
+              "sizing": "fill",
+              "placeholder": "Add a highlight...",
+              "display": "bulleted",
+              "itemStyle": {
+                "font": "serif-sm",
+                "background": "none",
+                "outputStyle": {
+                  "bold": false,
+                  "italic": false,
+                  "underline": false
                 }
-              ]
+              }
             }
           ]
         }
@@ -302,6 +257,8 @@
   ]
 }
 ```
+
+Notice that **tags** are a `list` inside a `row` (renders horizontally), while **highlights** are a standalone `list` (renders vertically with bullet markers).
 
 ## File Version
 
@@ -317,7 +274,7 @@
       "website": "linkedin.com/in/jake"
     },
     "lists": {},
-    "groups": {
+    "groupLists": {
       "sections": [
         {
           "_key": "e2du7fap",
@@ -325,7 +282,7 @@
             "heading": "Education"
           },
           "lists": {},
-          "groups": {
+          "groupLists": {
             "entries": [
               {
                 "_key": "b9sw3qnx",
@@ -340,7 +297,7 @@
                   "tags": [],
                   "highlights": []
                 },
-                "groups": {}
+                "groupLists": {}
               },
               {
                 "_key": "r6ht1kyz",
@@ -355,7 +312,7 @@
                   "tags": [],
                   "highlights": []
                 },
-                "groups": {}
+                "groupLists": {}
               }
             ]
           }
@@ -366,7 +323,7 @@
             "heading": "Experience"
           },
           "lists": {},
-          "groups": {
+          "groupLists": {
             "entries": [
               {
                 "_key": "f7ag2bnq",
@@ -385,7 +342,7 @@
                     "Explored ways to visualize GitHub collaboration in a classroom setting"
                   ]
                 },
-                "groups": {}
+                "groupLists": {}
               },
               {
                 "_key": "t1mp5rjk",
@@ -404,7 +361,7 @@
                     "Maintain upkeep of computers, classroom equipment, and 200 printers across campus"
                   ]
                 },
-                "groups": {}
+                "groupLists": {}
               },
               {
                 "_key": "u8nc4dhv",
@@ -426,7 +383,7 @@
                     "Presented virtually to the World Conference on Computational Intelligence"
                   ]
                 },
-                "groups": {}
+                "groupLists": {}
               }
             ]
           }
@@ -437,7 +394,7 @@
             "heading": "Projects"
           },
           "lists": {},
-          "groups": {
+          "groupLists": {
             "entries": [
               {
                 "_key": "z2ky6tqm",
@@ -457,7 +414,7 @@
                     "Used Celery and Redis for asynchronous tasks"
                   ]
                 },
-                "groups": {}
+                "groupLists": {}
               },
               {
                 "_key": "w4fb3ens",
@@ -477,7 +434,7 @@
                     "Collaborated with Minecraft server administrators to suggest features and get feedback about the plugin"
                   ]
                 },
-                "groups": {}
+                "groupLists": {}
               }
             ]
           }
@@ -488,7 +445,7 @@
             "heading": "Technical Skills"
           },
           "lists": {},
-          "groups": {
+          "groupLists": {
             "entries": [
               {
                 "_key": "o9xd5avp",
@@ -500,10 +457,18 @@
                   "location": ""
                 },
                 "lists": {
-                  "tags": ["Java", "Python", "C/C++", "SQL (Postgres)", "JavaScript", "HTML/CSS", "R"],
+                  "tags": [
+                    "Java",
+                    "Python",
+                    "C/C++",
+                    "SQL (Postgres)",
+                    "JavaScript",
+                    "HTML/CSS",
+                    "R"
+                  ],
                   "highlights": []
                 },
-                "groups": {}
+                "groupLists": {}
               },
               {
                 "_key": "l3mc8uzw",
@@ -515,10 +480,18 @@
                   "location": ""
                 },
                 "lists": {
-                  "tags": ["React", "Node.js", "Flask", "JUnit", "WordPress", "Material-UI", "FastAPI"],
+                  "tags": [
+                    "React",
+                    "Node.js",
+                    "Flask",
+                    "JUnit",
+                    "WordPress",
+                    "Material-UI",
+                    "FastAPI"
+                  ],
                   "highlights": []
                 },
-                "groups": {}
+                "groupLists": {}
               },
               {
                 "_key": "g7ij2kcn",
@@ -543,7 +516,7 @@
                   ],
                   "highlights": []
                 },
-                "groups": {}
+                "groupLists": {}
               },
               {
                 "_key": "s1ve4rgy",
@@ -558,7 +531,7 @@
                   "tags": ["pandas", "NumPy", "Matplotlib"],
                   "highlights": []
                 },
-                "groups": {}
+                "groupLists": {}
               }
             ]
           }

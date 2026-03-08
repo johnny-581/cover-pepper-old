@@ -1,13 +1,14 @@
 import type {
-  TemplateSchema,
+  Template,
   FileContent,
-  GroupInstance,
-  LayoutRow,
-  LayoutBlock,
-  FieldBlock,
-  GroupDef,
-  ListDef,
+  GroupListInstance,
+  LayoutNode,
+  RowBlock,
+  Field,
+  List,
+  GroupListDef,
 } from "@pepper-apply/shared";
+
 type JSONContent = {
   type?: string;
   attrs?: Record<string, unknown>;
@@ -19,126 +20,126 @@ type JSONContent = {
 type Scope = {
   fields: Record<string, string>;
   lists: Record<string, string[]>;
-  groups: Record<string, GroupInstance[]>;
+  groupLists: Record<string, GroupListInstance[]>;
 };
 
 export function buildDocument(
-  schema: TemplateSchema,
+  template: Template,
   content: FileContent,
 ): JSONContent {
   return {
     type: "doc",
-    content: buildLayoutRows(
-      schema.layout,
+    content: buildLayoutNodes(
+      template.layout,
       content,
-      schema.groups,
-      schema.lists,
+      template.groupLists,
     ),
   };
 }
 
-function buildLayoutRows(
-  layout: LayoutRow[],
+function buildLayoutNodes(
+  layout: LayoutNode[],
   scope: Scope,
-  groupDefs: GroupDef[],
-  listDefs: ListDef[],
+  groupListDefs: GroupListDef[],
 ): JSONContent[] {
-  return layout.map((row) => {
-    if (row.type === "fieldRow") {
-      return buildFieldRow(row.blocks, scope, listDefs);
+  return layout.map((node) => {
+    if (node.type === "row") {
+      return buildRow(node.blocks, scope);
     }
-    const groupDef = groupDefs.find((g) => g.id === row.groupId);
-    if (!groupDef)
-      throw new Error(`Unknown group: ${row.groupId}`);
-    return buildGroupSection(row.groupId, groupDef, row.layout, scope);
+    if (node.type === "list") {
+      return buildList(node, scope, false);
+    }
+    // groupList
+    const groupListDef = groupListDefs.find((g) => g.id === node.groupListId);
+    if (!groupListDef)
+      throw new Error(`Unknown group list: ${node.groupListId}`);
+    return buildGroupList(node.groupListId, groupListDef, node.layout, scope);
   });
 }
 
-function buildFieldRow(
-  blocks: LayoutBlock[],
+function buildRow(
+  blocks: RowBlock[],
   scope: Scope,
-  listDefs: ListDef[],
 ): JSONContent {
   return {
-    type: "fieldRow",
+    type: "row",
     content: blocks.map((block) => {
       if (block.type === "decorator") {
-        return {
-          type: "decoratorBlock",
-          attrs: { text: block.text },
-        };
+        return { type: "decorator", attrs: { text: block.text } };
       }
-      return buildFieldBlock(block, scope, listDefs);
+      if (block.type === "list") {
+        return buildList(block, scope, true);
+      }
+      return buildField(block, scope);
     }),
   };
 }
 
-function buildFieldBlock(
-  block: FieldBlock,
+function buildField(
+  block: Field,
   scope: Scope,
-  listDefs: ListDef[],
 ): JSONContent {
-  const listDef = listDefs.find((l) => l.id === block.fieldId);
-  const isList = !!listDef;
-
-  const attrs = {
-    fieldId: block.fieldId,
-    sizing: block.sizing,
-    font: block.style.font,
-    background: block.style.background,
-    display: block.style.display,
-    bold: block.outputStyle.bold,
-    italic: block.outputStyle.italic,
-    underline: block.outputStyle.underline,
-    placeholder: block.placeholder,
-    isList,
-    listId: listDef?.id ?? null,
-  };
-
-  if (isList) {
-    const items = scope.lists[listDef!.id] ?? [];
-    const actualItems = items.length > 0 ? items : [""];
-    return {
-      type: "fieldBlock",
-      attrs,
-      content: [
-        {
-          type: "contentList",
-          content: actualItems.map((html) => ({
-            type: "contentListItem",
-            content: [htmlToParagraph(html)],
-          })),
-        },
-      ],
-    };
-  }
-
   const html = scope.fields[block.fieldId] ?? "";
   return {
-    type: "fieldBlock",
-    attrs,
+    type: "field",
+    attrs: {
+      fieldId: block.fieldId,
+      sizing: block.sizing,
+      font: block.style.font,
+      background: block.style.background,
+      bold: block.outputStyle.bold,
+      italic: block.outputStyle.italic,
+      underline: block.outputStyle.underline,
+      placeholder: block.placeholder,
+    },
     content: [htmlToParagraph(html)],
   };
 }
 
-function buildGroupSection(
-  groupId: string,
-  groupDef: GroupDef,
-  layout: LayoutRow[],
+function buildList(
+  block: List,
+  scope: Scope,
+  inline: boolean,
+): JSONContent {
+  const items = scope.lists[block.listId] ?? [];
+  const actualItems = items.length > 0 ? items : [""];
+  return {
+    type: "list",
+    attrs: {
+      listId: block.listId,
+      inline,
+      sizing: block.sizing,
+      display: block.display,
+      placeholder: block.placeholder,
+      font: block.itemStyle.font,
+      bold: block.itemStyle.outputStyle.bold,
+      italic: block.itemStyle.outputStyle.italic,
+      underline: block.itemStyle.outputStyle.underline,
+    },
+    content: actualItems.map((html) => ({
+      type: "listItem",
+      content: [htmlToParagraph(html)],
+    })),
+  };
+}
+
+function buildGroupList(
+  groupListId: string,
+  groupListDef: GroupListDef,
+  layout: LayoutNode[],
   scope: Scope,
 ): JSONContent {
-  const instances = scope.groups[groupId] ?? [];
+  const instances = scope.groupLists[groupListId] ?? [];
   return {
-    type: "groupSection",
-    attrs: { groupId },
+    type: "groupList",
+    attrs: { groupListId },
     content: instances.map((instance) => ({
-      type: "groupInstance",
+      type: "groupListInstance",
       attrs: { instanceKey: instance._key },
-      content: buildLayoutRows(
+      content: buildLayoutNodes(
         layout,
         instance,
-        groupDef.groups,
-        groupDef.lists,
+        groupListDef.groupLists,
       ),
     })),
   };

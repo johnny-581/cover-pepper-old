@@ -1,18 +1,19 @@
 import { Node } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
-import { FieldRowNode } from "./field-row";
-import { FieldBlockNode } from "./field-block";
-import { DecoratorBlockNode } from "./decorator-block";
-import { GroupSectionNode } from "./group-section";
-import { GroupInstanceNode } from "./group-instance";
-import { ContentListNode } from "./content-list";
-import { ContentListItemNode } from "./content-list-item";
+import { RowNode } from "./row";
+import { FieldNode } from "./field";
+import { DecoratorNode } from "./decorator";
+import { GroupListNode } from "./group-list";
+import { GroupListInstanceNode } from "./group-list-instance";
+import { ListNode } from "./list";
+import { ListItemNode } from "./list-item";
+import { StructuredSelectionReset } from "./structured-selection-reset";
 
 const CustomDocument = Node.create({
   name: "doc",
   topNode: true,
-  content: "(layoutRow)+",
+  content: "(layoutNode)+",
 });
 
 export function createDocumentExtensions() {
@@ -32,12 +33,13 @@ export function createDocumentExtensions() {
     }),
     CustomDocument,
     Link.configure({ openOnClick: false }),
-    FieldRowNode,
-    FieldBlockNode,
-    DecoratorBlockNode,
-    GroupSectionNode,
-    GroupInstanceNode,
-    ContentListNode,
-    ContentListItemNode,
+    RowNode,
+    FieldNode,
+    DecoratorNode,
+    GroupListNode,
+    GroupListInstanceNode,
+    ListNode,
+    ListItemNode,
+    StructuredSelectionReset,
   ];
 }

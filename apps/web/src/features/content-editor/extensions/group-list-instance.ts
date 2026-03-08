@@ -1,8 +1,8 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 
-export const GroupInstanceNode = Node.create({
-  name: "groupInstance",
-  content: "(layoutRow)+",
+export const GroupListInstanceNode = Node.create({
+  name: "groupListInstance",
+  content: "(layoutNode)+",
   isolating: true,
 
   addAttributes() {
@@ -12,13 +12,13 @@ export const GroupInstanceNode = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-type="group-instance"]' }];
+    return [{ tag: 'div[data-type="group-list-instance"]' }];
   },
 
   renderHTML({ HTMLAttributes }) {
     return [
       "div",
-      mergeAttributes(HTMLAttributes, { "data-type": "group-instance" }),
+      mergeAttributes(HTMLAttributes, { "data-type": "group-list-instance" }),
       0,
     ];
   },

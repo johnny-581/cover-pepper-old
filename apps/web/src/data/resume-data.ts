@@ -1,6 +1,6 @@
-import type { TemplateSchema, FileContent } from "@pepper-apply/shared";
+import type { Template, FileContent } from "@pepper-apply/shared";
 
-export const resumeSchema: TemplateSchema = {
+export const resumeTemplate: Template = {
   fields: [
     { id: "name" },
     { id: "email" },
@@ -8,12 +8,12 @@ export const resumeSchema: TemplateSchema = {
     { id: "website", optional: true },
   ],
   lists: [],
-  groups: [
+  groupLists: [
     {
       id: "sections",
       fields: [{ id: "heading" }],
       lists: [],
-      groups: [
+      groupLists: [
         {
           id: "entries",
           fields: [
@@ -27,34 +27,34 @@ export const resumeSchema: TemplateSchema = {
             { id: "tags", itemId: "tag" },
             { id: "highlights", itemId: "highlight" },
           ],
-          groups: [],
+          groupLists: [],
         },
       ],
     },
   ],
   layout: [
     {
-      type: "fieldRow",
+      type: "row",
       blocks: [
         {
           type: "field",
           fieldId: "name",
           sizing: "fill",
           placeholder: "Full Name",
-          style: { font: "sans-sm", background: "none", display: "normal" },
+          style: { font: "sans-sm", background: "none" },
           outputStyle: { bold: true, italic: false, underline: false },
         },
       ],
     },
     {
-      type: "fieldRow",
+      type: "row",
       blocks: [
         {
           type: "field",
           fieldId: "email",
           sizing: "hug",
           placeholder: "Email",
-          style: { font: "sans-sm", background: "grey", display: "normal" },
+          style: { font: "sans-sm", background: "grey" },
           outputStyle: { bold: false, italic: false, underline: false },
         },
         { type: "decorator", text: " | " },
@@ -63,7 +63,7 @@ export const resumeSchema: TemplateSchema = {
           fieldId: "phone",
           sizing: "hug",
           placeholder: "Phone",
-          style: { font: "sans-sm", background: "grey", display: "normal" },
+          style: { font: "sans-sm", background: "grey" },
           outputStyle: { bold: false, italic: false, underline: false },
         },
         { type: "decorator", text: " | " },
@@ -72,49 +72,41 @@ export const resumeSchema: TemplateSchema = {
           fieldId: "website",
           sizing: "fill",
           placeholder: "Website",
-          style: { font: "sans-sm", background: "grey", display: "normal" },
+          style: { font: "sans-sm", background: "grey" },
           outputStyle: { bold: false, italic: false, underline: false },
         },
       ],
     },
     {
-      type: "groupSection",
-      groupId: "sections",
+      type: "groupList",
+      groupListId: "sections",
       layout: [
         {
-          type: "fieldRow",
+          type: "row",
           blocks: [
             {
               type: "field",
               fieldId: "heading",
               sizing: "fill",
               placeholder: "Section Name",
-              style: {
-                font: "sans-sm",
-                background: "yellow",
-                display: "normal",
-              },
+              style: { font: "sans-sm", background: "yellow" },
               outputStyle: { bold: true, italic: false, underline: false },
             },
           ],
         },
         {
-          type: "groupSection",
-          groupId: "entries",
+          type: "groupList",
+          groupListId: "entries",
           layout: [
             {
-              type: "fieldRow",
+              type: "row",
               blocks: [
                 {
                   type: "field",
                   fieldId: "title",
                   sizing: "fill",
                   placeholder: "Title",
-                  style: {
-                    font: "sans-sm",
-                    background: "none",
-                    display: "normal",
-                  },
+                  style: { font: "sans-sm", background: "none" },
                   outputStyle: { bold: true, italic: false, underline: false },
                 },
                 {
@@ -122,11 +114,7 @@ export const resumeSchema: TemplateSchema = {
                   fieldId: "startDate",
                   sizing: "hug",
                   placeholder: "Start",
-                  style: {
-                    font: "sans-sm",
-                    background: "grey",
-                    display: "normal",
-                  },
+                  style: { font: "sans-sm", background: "grey" },
                   outputStyle: { bold: false, italic: true, underline: false },
                 },
                 { type: "decorator", text: " – " },
@@ -135,28 +123,20 @@ export const resumeSchema: TemplateSchema = {
                   fieldId: "endDate",
                   sizing: "hug",
                   placeholder: "End",
-                  style: {
-                    font: "sans-sm",
-                    background: "grey",
-                    display: "normal",
-                  },
+                  style: { font: "sans-sm", background: "grey" },
                   outputStyle: { bold: false, italic: true, underline: false },
                 },
               ],
             },
             {
-              type: "fieldRow",
+              type: "row",
               blocks: [
                 {
                   type: "field",
                   fieldId: "subtitle",
                   sizing: "hug",
-                  placeholder: "Company / School",
-                  style: {
-                    font: "sans-sm",
-                    background: "none",
-                    display: "normal",
-                  },
+                  placeholder: "Company",
+                  style: { font: "sans-sm", background: "none" },
                   outputStyle: {
                     bold: false,
                     italic: false,
@@ -169,56 +149,47 @@ export const resumeSchema: TemplateSchema = {
                   fieldId: "location",
                   sizing: "fill",
                   placeholder: "Location",
-                  style: {
-                    font: "sans-sm",
-                    background: "none",
-                    display: "normal",
-                  },
+                  style: { font: "sans-sm", background: "none" },
                   outputStyle: { bold: false, italic: true, underline: false },
                 },
               ],
             },
+            // Tags: inline list in a row → horizontal
             {
-              type: "fieldRow",
+              type: "row",
               blocks: [
                 {
-                  type: "field",
-                  fieldId: "tags",
+                  type: "list",
+                  listId: "tags",
                   sizing: "fill",
                   placeholder: "Add a tag...",
-                  style: {
+                  display: "plain",
+                  itemStyle: {
                     font: "sans-sm",
-                    background: "grey",
-                    display: "normal",
-                  },
-                  outputStyle: {
-                    bold: false,
-                    italic: false,
-                    underline: false,
+                    outputStyle: {
+                      bold: false,
+                      italic: false,
+                      underline: false,
+                    },
                   },
                 },
               ],
             },
+            // Highlights: standalone list → vertical bullets
             {
-              type: "fieldRow",
-              blocks: [
-                {
-                  type: "field",
-                  fieldId: "highlights",
-                  sizing: "fill",
-                  placeholder: "Add a highlight...",
-                  style: {
-                    font: "sans-sm",
-                    background: "none",
-                    display: "bulleted",
-                  },
-                  outputStyle: {
-                    bold: false,
-                    italic: false,
-                    underline: false,
-                  },
+              type: "list",
+              listId: "highlights",
+              sizing: "fill",
+              placeholder: "Add a highlight...",
+              display: "bulleted",
+              itemStyle: {
+                font: "sans-sm",
+                outputStyle: {
+                  bold: false,
+                  italic: false,
+                  underline: false,
                 },
-              ],
+              },
             },
           ],
         },
@@ -235,13 +206,13 @@ export const resumeContent: FileContent = {
     website: "linkedin.com/in/jake",
   },
   lists: {},
-  groups: {
+  groupLists: {
     sections: [
       {
         _key: "e2du7fap",
         fields: { heading: "Education" },
         lists: {},
-        groups: {
+        groupLists: {
           entries: [
             {
               _key: "b9sw3qnx",
@@ -249,24 +220,24 @@ export const resumeContent: FileContent = {
                 title:
                   "Bachelor of Arts in Computer Science, Minor in Business",
                 subtitle: "Southwestern University",
-                startDate: "Aug. 2018",
+                startDate: "Aug 2018",
                 endDate: "May 2021",
                 location: "Georgetown, TX",
               },
               lists: { tags: [], highlights: [] },
-              groups: {},
+              groupLists: {},
             },
             {
               _key: "r6ht1kyz",
               fields: {
                 title: "Associate's in Liberal Arts",
                 subtitle: "Blinn College",
-                startDate: "Aug. 2014",
+                startDate: "Aug 2014",
                 endDate: "May 2018",
                 location: "Bryan, TX",
               },
               lists: { tags: [], highlights: [] },
-              groups: {},
+              groupLists: {},
             },
           ],
         },
@@ -275,7 +246,7 @@ export const resumeContent: FileContent = {
         _key: "p3vx8cmw",
         fields: { heading: "Experience" },
         lists: {},
-        groups: {
+        groupLists: {
           entries: [
             {
               _key: "f7ag2bnq",
@@ -294,14 +265,14 @@ export const resumeContent: FileContent = {
                   "Explored ways to visualize GitHub collaboration in a classroom setting",
                 ],
               },
-              groups: {},
+              groupLists: {},
             },
             {
               _key: "t1mp5rjk",
               fields: {
                 title: "Information Technology Support Specialist",
                 subtitle: "Southwestern University",
-                startDate: "Sep. 2018",
+                startDate: "Sep 2018",
                 endDate: "Present",
                 location: "Georgetown, TX",
               },
@@ -313,7 +284,7 @@ export const resumeContent: FileContent = {
                   "Maintain upkeep of computers, classroom equipment, and 200 printers across campus",
                 ],
               },
-              groups: {},
+              groupLists: {},
             },
             {
               _key: "u8nc4dhv",
@@ -335,7 +306,7 @@ export const resumeContent: FileContent = {
                   "Presented virtually to the World Conference on Computational Intelligence",
                 ],
               },
-              groups: {},
+              groupLists: {},
             },
           ],
         },
@@ -344,7 +315,7 @@ export const resumeContent: FileContent = {
         _key: "c5jw9plx",
         fields: { heading: "Projects" },
         lists: {},
-        groups: {
+        groupLists: {
           entries: [
             {
               _key: "z2ky6tqm",
@@ -364,7 +335,7 @@ export const resumeContent: FileContent = {
                   "Used Celery and Redis for asynchronous tasks",
                 ],
               },
-              groups: {},
+              groupLists: {},
             },
             {
               _key: "w4fb3ens",
@@ -384,7 +355,7 @@ export const resumeContent: FileContent = {
                   "Collaborated with Minecraft server administrators to suggest features and get feedback about the plugin",
                 ],
               },
-              groups: {},
+              groupLists: {},
             },
           ],
         },
@@ -393,7 +364,7 @@ export const resumeContent: FileContent = {
         _key: "n6qr1hbt",
         fields: { heading: "Technical Skills" },
         lists: {},
-        groups: {
+        groupLists: {
           entries: [
             {
               _key: "o9xd5avp",
@@ -416,7 +387,7 @@ export const resumeContent: FileContent = {
                 ],
                 highlights: [],
               },
-              groups: {},
+              groupLists: {},
             },
             {
               _key: "l3mc8uzw",
@@ -439,7 +410,7 @@ export const resumeContent: FileContent = {
                 ],
                 highlights: [],
               },
-              groups: {},
+              groupLists: {},
             },
             {
               _key: "g7ij2kcn",
@@ -464,7 +435,7 @@ export const resumeContent: FileContent = {
                 ],
                 highlights: [],
               },
-              groups: {},
+              groupLists: {},
             },
             {
               _key: "s1ve4rgy",
@@ -479,7 +450,7 @@ export const resumeContent: FileContent = {
                 tags: ["pandas", "NumPy", "Matplotlib"],
                 highlights: [],
               },
-              groups: {},
+              groupLists: {},
             },
           ],
         },

@@ -1,9 +1,9 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { DecoratorBlockView } from "../components/node-views/DecoratorBlockView";
+import { DecoratorView } from "../components/node-views/DecoratorView";
 
-export const DecoratorBlockNode = Node.create({
-  name: "decoratorBlock",
+export const DecoratorNode = Node.create({
+  name: "decorator",
   atom: true,
   selectable: false,
 
@@ -26,8 +26,9 @@ export const DecoratorBlockNode = Node.create({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(DecoratorBlockView, {
+    return ReactNodeViewRenderer(DecoratorView, {
       as: "span",
+      className: "shrink-0",
     });
   },
 });

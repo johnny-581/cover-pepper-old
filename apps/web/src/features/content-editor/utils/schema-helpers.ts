@@ -1,39 +1,39 @@
 import type {
-  TemplateSchema,
-  GroupDef,
-  LayoutRow,
+  Template,
+  GroupListDef,
+  LayoutNode,
 } from "@pepper-apply/shared";
 
 /**
- * Recursively search the TemplateSchema for a GroupDef by its ID.
+ * Recursively search the Template for a GroupListDef by its ID.
  */
-export function findGroupDefById(
-  schema: TemplateSchema,
-  groupId: string,
-): GroupDef | null {
-  function search(groups: GroupDef[]): GroupDef | null {
-    for (const g of groups) {
-      if (g.id === groupId) return g;
-      const found = search(g.groups);
+export function findGroupListDefById(
+  template: Template,
+  groupListId: string,
+): GroupListDef | null {
+  function search(groupLists: GroupListDef[]): GroupListDef | null {
+    for (const g of groupLists) {
+      if (g.id === groupListId) return g;
+      const found = search(g.groupLists);
       if (found) return found;
     }
     return null;
   }
-  return search(schema.groups);
+  return search(template.groupLists);
 }
 
 /**
- * Build a mapping from groupId → layout rows for that group.
+ * Build a mapping from groupListId → layout nodes for that group list.
  * Recursively walks the layout tree.
  */
-export function buildGroupLayoutMap(
-  layout: LayoutRow[],
-  map: Record<string, LayoutRow[]> = {},
-): Record<string, LayoutRow[]> {
-  for (const row of layout) {
-    if (row.type === "groupSection") {
-      map[row.groupId] = row.layout;
-      buildGroupLayoutMap(row.layout, map);
+export function buildGroupListLayoutMap(
+  layout: LayoutNode[],
+  map: Record<string, LayoutNode[]> = {},
+): Record<string, LayoutNode[]> {
+  for (const node of layout) {
+    if (node.type === "groupList") {
+      map[node.groupListId] = node.layout;
+      buildGroupListLayoutMap(node.layout, map);
     }
   }
   return map;
