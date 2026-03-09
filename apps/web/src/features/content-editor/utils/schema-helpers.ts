@@ -1,14 +1,15 @@
 import type {
-  Template,
   GroupListDef,
   LayoutNode,
+  TemplateLayout,
+  TemplateSpec,
 } from "@pepper-apply/shared";
 
 /**
- * Recursively search the Template for a GroupListDef by its ID.
+ * Recursively search the TemplateSpec for a GroupListDef by its ID.
  */
 export function findGroupListDefById(
-  template: Template,
+  templateSpec: TemplateSpec,
   groupListId: string,
 ): GroupListDef | null {
   function search(groupLists: GroupListDef[]): GroupListDef | null {
@@ -19,7 +20,7 @@ export function findGroupListDefById(
     }
     return null;
   }
-  return search(template.groupLists);
+  return search(templateSpec.groupLists);
 }
 
 /**
@@ -40,9 +41,9 @@ export function buildGroupListLayoutMap(
 }
 
 export function findGroupListLayout(
-  layout: Template["layout"],
+  layout: TemplateLayout,
   groupListId: string,
-): Template["layout"] | null {
+): TemplateLayout | null {
   for (const node of layout) {
     if (node.type !== "groupList") continue;
     if (node.groupListId === groupListId) {

@@ -21,14 +21,13 @@
 
 ## 2. Type Definitions
 
-### Template (Schema)
+### Template Spec
 
 ```typescript
-type Template = {
+type TemplateSpec = {
   fields: FieldDef[];
   lists: ListDef[];
   groupLists: GroupListDef[];
-  layout: LayoutNode[];
 };
 
 type FieldDef = { id: string; optional?: boolean };
@@ -43,9 +42,10 @@ type GroupListDef = {
 
 ### Layout
 
-A layout is a tree of nodes. Fields are atomic (paragraph only). Lists are first-class layout elements whose rendering direction is determined by context: inside a row → horizontal, standalone → vertical.
+The layout is stored separately from the spec. It's a tree of nodes that controls how spec fields are arranged in the content editor. The basic units are fields and list items. The rendering direction of a list is determined by context: inside a row → horizontal, standalone → vertical.
 
 ```typescript
+type TemplateLayout = LayoutNode[];
 type LayoutNode = Row | List | GroupList;
 
 type Row = { type: "row"; blocks: RowBlock[] };
@@ -63,7 +63,7 @@ type Field = {
   fieldId: string;
   sizing: "fill" | "hug";
   placeholder: string;
-  style: FieldStyle;      // how the field looks in the editor
+  style: FieldStyle; // how the field looks in the editor
   outputStyle: OutputStyle; // how the field renders in the PDF
 };
 
@@ -81,7 +81,6 @@ type List = {
 
 type ItemStyle = {
   font: FontToken;
-  background: BackgroundToken;
   outputStyle: OutputStyle;
 };
 
@@ -91,20 +90,24 @@ type FieldStyle = {
 };
 
 type FontToken =
-  | "sans-lg" | "sans-md" | "sans-sm"
-  | "serif-lg" | "serif-md" | "serif-sm";
+  | "sans-lg"
+  | "sans-md"
+  | "sans-sm"
+  | "serif-lg"
+  | "serif-md"
+  | "serif-sm";
 type BackgroundToken = "none" | "grey" | "yellow";
 type OutputStyle = { bold: boolean; italic: boolean; underline: boolean };
 ```
 
 ### File Content
 
-Content is split into `fields`, `lists`, and `groupLists` so it's self-describing — no schema needed to interpret it.
+Content is split into `fields`, `lists`, and `groupLists` so it's self-describing — no spec needed to interpret it.
 
 ```typescript
 type FileContent = {
-  fields: Record<string, string>;     // richtext HTML
-  lists: Record<string, string[]>;    // richtext HTML
+  fields: Record<string, string>; // richtext HTML
+  lists: Record<string, string[]>; // richtext HTML
   groupLists: Record<string, GroupListInstance[]>;
 };
 
@@ -157,7 +160,7 @@ Creating a version clones the active content. Switching versions swaps content; 
 
 **In the editor:** `outputStyle` is reflected as base CSS on the field. If `outputStyle.bold` is true, the field text appears bold and the toolbar shows "B" as active. Users can still apply additional inline formatting on top.
 
-> Configuring `outputStyle` is deferred to the Layout Editor. Until then, values are set in the template JSON.
+> Configuring `outputStyle` is deferred to the Layout Editor. Until then, values are set in the layout JSON.
 
 ---
 
@@ -193,15 +196,15 @@ Parse the template into an AST of text + command nodes, then walk it with the co
 
 ---
 
-## 5. Layout–Schema Sync
+## 5. Layout–Spec Sync
 
-The layout references field IDs from the schema. Since the Layout Editor is deferred, the main risk is LaTeX edits that add/remove fields without updating the layout.
+The layout references field IDs from the spec. Since the Layout Editor is deferred, the main risk is LaTeX edits that add/remove fields without updating the layout.
 
-**On template save**, run a validator that checks every `fieldId` and `groupId` in the layout exists in the schema, and every schema field appears in the layout (warning if missing).
+**On template save**, run a validator that checks every `fieldId` and `groupId` in the layout exists in the spec, and every spec field appears in the layout (warning if missing).
 
-**Field added in LaTeX:** Auto-add to schema + append a default `Field` at the end of the relevant layout scope.
+**Field added in LaTeX:** Auto-add to spec + append a default `Field` at the end of the relevant layout scope.
 
-**Field removed from LaTeX:** Remove from schema + layout. Warn about orphaned content (don't delete it — user may re-add the field).
+**Field removed from LaTeX:** Remove from spec + layout. Warn about orphaned content (don't delete it — user may re-add the field).
 
 ---
 
@@ -221,11 +224,11 @@ Renders the layout tree as Tiptap nodes: `Row` → flex row, `Field` → atomic 
 
 ## 7. LaTeX Editor
 
-Monaco with custom highlighting for the four pseudo-commands. Autocomplete suggests field/list/group IDs from the schema (flat list is fine for v1; scope-aware later).
+Monaco with custom highlighting for the four pseudo-commands. Autocomplete suggests field/list/group IDs from the spec (flat list is fine for v1; scope-aware later).
 
 **Template forking:** Edits affect all files using the template. To change it for one file only, fork it into a new template.
 
-**On save:** Parse LaTeX → diff against schema → run sync (section 4) → validate layout. Errors block save; warnings are non-blocking.
+**On save:** Parse LaTeX → diff against spec → run sync (section 5) → validate layout. Errors block save; warnings are non-blocking.
 
 ---
 
@@ -256,9 +259,10 @@ Application
 └── artifacts[] (rendered PDFs)
 
 Template
-├── id, type ("resume" | "coverLetter")
-├── latex (template source)
-└── template (Template)
+├── id, name, type ("resume" | "coverLetter")
+├── latex (raw LaTeX source)
+├── spec (TemplateSpec — fields, lists, groupLists)
+└── layout (TemplateLayout — editor arrangement of spec fields)
 ```
 
 Template `type` is soft-enforced — the UI warns on mismatch but doesn't block.
@@ -269,10 +273,10 @@ A global **user profile** exists but isn't referenced by content or metadata. Us
 
 ## 10. Layout Editor (Deferred)
 
-> The layout schema is fully specified. The visual editor is deferred.
+> The layout spec is fully defined. The visual editor is deferred.
 
 Until then, template creators edit the layout JSON directly or rely on auto-generated layouts from the sync process.
 
-When built, the Layout Editor will support: drag-and-drop reordering, inline placeholder editing, decorator management, `FieldStyle` / `ItemStyle` configuration, `OutputStyle` toggles ("PDF: **B** _I_ U"), list display mode (plain/bulleted), and fill/hug enforcement. It modifies only the `layout` property — field/list/group list definitions are owned by the LaTeX Editor.
+When built, the Layout Editor will support: drag-and-drop reordering, inline placeholder editing, decorator management, `FieldStyle` / `ItemStyle` configuration, `OutputStyle` toggles ("PDF: **B** _I_ U"), list display mode (plain/bulleted), and fill/hug enforcement. It modifies only the `layout` column — field/list/group list definitions in the spec are owned by the LaTeX Editor.
 
 ---

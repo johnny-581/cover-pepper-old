@@ -1,7 +1,7 @@
 import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { Plus } from "lucide-react";
-import type { LayoutNode, Template } from "@pepper-apply/shared";
+import type { LayoutNode, TemplateLayout, TemplateSpec } from "@pepper-apply/shared";
 import { buildEmptyGroupListInstanceJSON } from "../../utils/build-empty-structure";
 import { findGroupListDefById } from "../../utils/schema-helpers";
 
@@ -21,12 +21,13 @@ export function GroupListView({ node, editor, getPos }: NodeViewProps) {
 
     const meta = (editor.storage as unknown as Record<string, unknown>)
       .documentMeta as {
-      template: Template;
+      templateSpec: TemplateSpec;
+      templateLayout: TemplateLayout;
       groupListLayouts: Record<string, LayoutNode[]>;
     };
     if (!meta) return;
 
-    const groupListDef = findGroupListDefById(meta.template, groupListId);
+    const groupListDef = findGroupListDefById(meta.templateSpec, groupListId);
     if (!groupListDef) return;
 
     const layout = meta.groupListLayouts[groupListId];

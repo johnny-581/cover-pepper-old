@@ -1,15 +1,19 @@
 import { create } from "zustand";
-import type { Template, FileContent } from "@pepper-apply/shared";
-import { resumeTemplate, resumeContent } from "@/data/resume-data";
+import type { FileContent, TemplateLayout, TemplateSpec } from "@pepper-apply/shared";
+import { templateContent } from "@/data/resume/template-content";
+import { templateLayout } from "@/data/resume/template-layout";
+import { templateSpec } from "@/data/resume/template-spec";
 
 type EditorState = {
-  template: Template;
+  templateSpec: TemplateSpec;
+  templateLayout: TemplateLayout;
   content: FileContent;
   setContent: (content: FileContent) => void;
 };
 
 export const useEditorStore = create<EditorState>((set) => ({
-  template: resumeTemplate,
-  content: resumeContent,
+  templateSpec,
+  templateLayout,
+  content: templateContent,
   setContent: (content) => set({ content }),
 }));

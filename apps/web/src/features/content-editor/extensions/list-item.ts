@@ -9,6 +9,7 @@ import {
   findNextEditableTarget,
   type EditableBlock,
 } from "./utils/previous-editable-block";
+import { maybeDeleteEmptyGroupListInstanceAndJump } from "./utils/group-list-instance-backspace";
 
 type ListItemContext = {
   listItemDepth: number;
@@ -45,8 +46,8 @@ function moveSelectionBeforeList(
   listStartPos: number,
   fromPos: number,
 ): boolean {
-  const selection = Selection.near(state.doc.resolve(listStartPos), -1);
-  if (selection.from >= listStartPos) {
+  const selection = resolveSelectionBeforeList(state, listStartPos);
+  if (!selection) {
     return false;
   }
 
@@ -56,6 +57,18 @@ function moveSelectionBeforeList(
       .setMeta(CARET_JUMP_UNDO_META, { from: fromPos, to: selection.from }),
   );
   return true;
+}
+
+function resolveSelectionBeforeList(
+  state: EditorState,
+  listStartPos: number,
+): Selection | null {
+  const selection = Selection.near(state.doc.resolve(listStartPos), -1);
+  if (selection.from >= listStartPos) {
+    return null;
+  }
+
+  return selection;
 }
 
 function resolveNextTargetForEmptyItem(
@@ -225,6 +238,24 @@ export const ListItemNode = Node.create({
 
         if (isFirstItem && listNode.childCount === 1) {
           const listStartPos = $from.before(listDepth);
+          const selectionBeforeList = resolveSelectionBeforeList(
+            state,
+            listStartPos,
+          );
+          if (selectionBeforeList) {
+            const listItemPos = $from.before(listItemDepth);
+            const deletedGroupListInstance =
+              maybeDeleteEmptyGroupListInstanceAndJump(
+                state,
+                editor.view.dispatch,
+                listItemPos,
+                selectionBeforeList.from,
+              );
+            if (deletedGroupListInstance) {
+              return true;
+            }
+          }
+
           moveSelectionBeforeList(
             state,
             editor.view.dispatch,

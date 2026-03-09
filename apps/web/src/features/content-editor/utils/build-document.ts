@@ -1,5 +1,4 @@
 import type {
-  Template,
   FileContent,
   GroupListInstance,
   LayoutNode,
@@ -7,6 +6,8 @@ import type {
   Field,
   List,
   GroupListDef,
+  TemplateLayout,
+  TemplateSpec,
 } from "@pepper-apply/shared";
 
 type JSONContent = {
@@ -24,15 +25,16 @@ type Scope = {
 };
 
 export function buildDocument(
-  template: Template,
+  templateSpec: TemplateSpec,
+  templateLayout: TemplateLayout,
   content: FileContent,
 ): JSONContent {
   return {
     type: "doc",
     content: buildLayoutNodes(
-      template.layout,
+      templateLayout,
       content,
-      template.groupLists,
+      templateSpec.groupLists,
     ),
   };
 }

@@ -16,7 +16,12 @@ Content and presentation are kept separate. The LaTeX template contains no conte
 
 **Content** — The JSON data for a file. Contains named fields (e.g. greeting, paragraph 1, paragraph 2 for a cover letter).
 
-**Template** — Stored as tagged LaTeX strings. Combined with content via a templating engine. Each template has a type (e.g. resume, cover letter) and should only be applied to files of the matching type.
+**Template** — Defines how a file is structured and rendered. Each template has a type (e.g. resume, cover letter) and should only be applied to files of the matching type. A template contains the following:
+
+- **LaTeX source** — The tagged LaTeX string. Combined with content via a templating engine to produce the final PDF.
+- **Spec** — Defines what content the template expects: its fields, lists, and group lists. Acts as the contract between the LaTeX source and the content editor.
+- **Layout** — Controls how the spec's fields are arranged in the content editor (not in the PDF). Stored alongside the spec as JSON.
+- Other template metadata like name, type, author, createdAt, etc.
 
 **User Profile** - There is a global user profile, but it is not directly referenced by application metadata or file contents.
 
@@ -59,11 +64,11 @@ In this mode you can:
 - **Edit placeholder strings** by clicking into a field
 - **Add decorative Texts** between fields (e.g. " – " between Start Date and End Date)
 - **Style fields** — font (sans/serif, lg/md/sm) and background colour (grey/yellow/none)
-- **Style lists** — display style (plain or bulleted), item font and background
+- **Style lists** — display style (plain or bulleted) and item font
 
 **Layout rules:** Every line must be fully covered by blocks — no empty horizontal space. If multiple blocks share a line, one is marked as **fill** (stretches to fill remaining space) and the rest **hug** their content. This ensures clicking anywhere on the canvas lands your cursor in a field.
 
-The layout is stored in the template JSON and stays in sync with the fields defined in the LaTeX template.
+The layout is stored in the template's spec and stays in sync with the fields defined in the LaTeX source.
 
 # The LaTeX Editor
 

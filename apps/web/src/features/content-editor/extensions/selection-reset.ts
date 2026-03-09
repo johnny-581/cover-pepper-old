@@ -11,7 +11,8 @@ import {
 } from "../utils/analyze-selection-helpers";
 
 type DocumentMeta = {
-  template: import("@pepper-apply/shared").Template;
+  templateSpec: import("@pepper-apply/shared").TemplateSpec;
+  templateLayout: import("@pepper-apply/shared").TemplateLayout;
   groupListLayouts: Record<string, import("@pepper-apply/shared").LayoutNode[]>;
 };
 
@@ -67,7 +68,8 @@ function handleSelectionReset(
   const analysis = analyzeSelection(
     view.state.doc,
     view.state.selection,
-    meta.template,
+    meta.templateSpec,
+    meta.templateLayout,
   );
   if (!analysis) return false;
 

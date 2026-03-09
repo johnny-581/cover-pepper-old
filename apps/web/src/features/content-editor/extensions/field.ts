@@ -9,6 +9,7 @@ import {
   findPreviousEditableBlock,
 } from "./utils/previous-editable-block";
 import { CARET_JUMP_UNDO_META } from "./caret-jump-undo";
+import { maybeDeleteEmptyGroupListInstanceAndJump } from "./utils/group-list-instance-backspace";
 
 type FieldContext = {
   fieldNode: PMNode;
@@ -36,7 +37,10 @@ function isFieldEmpty(fieldNode: FieldContext["fieldNode"]): boolean {
   );
 }
 
-function handleDeleteFromEmptyField(editor: Editor): boolean {
+function handleDeleteFromEmptyField(
+  editor: Editor,
+  deleteEmptyGroupListInstance: boolean,
+): boolean {
   const { state } = editor;
   const { empty, $from } = state.selection;
 
@@ -55,6 +59,18 @@ function handleDeleteFromEmptyField(editor: Editor): boolean {
   }
 
   const selection = createEndSelectionForBlock(state.doc, previousBlock);
+  if (deleteEmptyGroupListInstance) {
+    const deletedGroupListInstance = maybeDeleteEmptyGroupListInstanceAndJump(
+      state,
+      editor.view.dispatch,
+      fieldContext.fieldStartPos,
+      selection.from,
+    );
+    if (deletedGroupListInstance) {
+      return true;
+    }
+  }
+
   dispatchSelectionJump(editor, selection.from);
   return true;
 }
@@ -132,8 +148,8 @@ export const FieldNode = Node.create({
   addKeyboardShortcuts() {
     return {
       Enter: ({ editor }) => handleEnterFromEmptyField(editor),
-      Backspace: ({ editor }) => handleDeleteFromEmptyField(editor),
-      Delete: ({ editor }) => handleDeleteFromEmptyField(editor),
+      Backspace: ({ editor }) => handleDeleteFromEmptyField(editor, true),
+      Delete: ({ editor }) => handleDeleteFromEmptyField(editor, false),
     };
   },
 });

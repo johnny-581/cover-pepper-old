@@ -6,17 +6,19 @@ import { extractContent } from "./utils/extract-content";
 import { buildGroupListLayoutMap } from "./utils/schema-helpers";
 
 export function ContentEditor() {
-  const template = useEditorStore((s) => s.template);
+  const templateSpec = useEditorStore((s) => s.templateSpec);
+  const templateLayout = useEditorStore((s) => s.templateLayout);
   const initialContent = useEditorStore((s) => s.content);
   const setContent = useEditorStore((s) => s.setContent);
 
   const editor = useEditor({
     extensions: createDocumentExtensions(),
-    content: buildDocument(template, initialContent),
+    content: buildDocument(templateSpec, templateLayout, initialContent),
     onCreate: ({ editor }) => {
       (editor.storage as unknown as Record<string, unknown>).documentMeta = {
-        template,
-        groupListLayouts: buildGroupListLayoutMap(template.layout),
+        templateSpec,
+        templateLayout,
+        groupListLayouts: buildGroupListLayoutMap(templateLayout),
       };
     },
     onUpdate: ({ editor }) => {

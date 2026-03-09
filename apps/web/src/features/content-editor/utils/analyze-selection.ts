@@ -1,4 +1,4 @@
-import type { Template } from "@pepper-apply/shared";
+import type { TemplateLayout, TemplateSpec } from "@pepper-apply/shared";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import type { Selection } from "@tiptap/pm/state";
 import {
@@ -39,7 +39,8 @@ type RewriteAccumulator = {
 export function analyzeSelection(
   doc: PMNode,
   selection: Selection,
-  template: Template,
+  templateSpec: TemplateSpec,
+  templateLayout: TemplateLayout,
 ): SelectionAnalysis | null {
   if (selection.empty) return null;
 
@@ -59,7 +60,8 @@ export function analyzeSelection(
         childStart,
         selection.from,
         selection.to,
-        template,
+        templateSpec,
+        templateLayout,
       );
     },
   );
@@ -81,7 +83,8 @@ function rewriteLayoutNode(
   nodeStart: number,
   selectionFrom: number,
   selectionTo: number,
-  template: Template,
+  templateSpec: TemplateSpec,
+  templateLayout: TemplateLayout,
 ): RewriteResult {
   if (node.type.name === "row") {
     return rewriteRowNode(node, nodeStart, selectionFrom, selectionTo);
@@ -97,7 +100,8 @@ function rewriteLayoutNode(
       nodeStart,
       selectionFrom,
       selectionTo,
-      template,
+      templateSpec,
+      templateLayout,
       rewriteLayoutNode,
     );
   }

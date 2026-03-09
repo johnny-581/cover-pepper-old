@@ -9,14 +9,15 @@ export type GroupListDef = {
   groupLists: GroupListDef[];
 };
 
-export type Template = {
+export type TemplateSpec = {
   fields: FieldDef[];
   lists: ListDef[];
   groupLists: GroupListDef[];
-  layout: LayoutNode[];
 };
 
 // ── Layout ──
+
+export type TemplateLayout = LayoutNode[];
 
 export type LayoutNode = Row | List | GroupList;
 

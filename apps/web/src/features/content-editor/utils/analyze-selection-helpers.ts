@@ -43,7 +43,9 @@ export function prependPath(
   };
 }
 
-export function findFirstEditablePath(node: JSONContent): SelectionAnchor | null {
+export function findFirstEditablePath(
+  node: JSONContent,
+): SelectionAnchor | null {
   if (node.type === "paragraph") {
     return { path: [], textOffset: 0 };
   }
