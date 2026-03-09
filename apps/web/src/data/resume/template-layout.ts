@@ -132,7 +132,7 @@ export const templateLayout: TemplateLayout = [
             listId: "highlights",
             sizing: "fill",
             placeholder: "Add a highlight",
-            display: "plain",
+            display: "bulleted",
             itemStyle: {
               font: "sans-sm",
               outputStyle: {

@@ -195,7 +195,7 @@
 div[data-type="row"] {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  /* gap: 0.25rem; */
   width: 100%;
 }
 
@@ -213,12 +213,12 @@ div[data-type="row"] {
 div[data-type="group-list"] {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  /* gap: 0.25rem; */
 }
 
-div[data-type="group-list-instance"] {
-  padding: 0.125rem 0;
-}
+/* div[data-type="group-list-instance"] {
+  padding: 0.5rem 0;
+} */
 
 /* Inline lists: NodeViewContent carries `flex` classes when inline=true.
    Scope to the list-level contentDOM so nested list-item contentDOMs stay block. */

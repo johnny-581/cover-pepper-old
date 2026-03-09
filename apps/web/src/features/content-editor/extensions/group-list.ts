@@ -1,6 +1,4 @@
 import { Node, mergeAttributes } from "@tiptap/core";
-import { ReactNodeViewRenderer } from "@tiptap/react";
-import { GroupListView } from "../components/node-views/GroupListView";
 
 export const GroupListNode = Node.create({
   name: "groupList",
@@ -23,9 +21,5 @@ export const GroupListNode = Node.create({
       mergeAttributes(HTMLAttributes, { "data-type": "group-list" }),
       0,
     ];
-  },
-
-  addNodeView() {
-    return ReactNodeViewRenderer(GroupListView);
   },
 });
