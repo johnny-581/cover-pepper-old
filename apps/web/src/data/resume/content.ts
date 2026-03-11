@@ -1,6 +1,6 @@
 import type { FileContent } from "@pepper-apply/shared";
 
-export const templateContent: FileContent = {
+export const content: FileContent = {
   fields: {
     name: "Jake Ryan",
   },
