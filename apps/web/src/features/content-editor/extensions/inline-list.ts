@@ -1,11 +1,11 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { ListView } from "../components/node-views/ListView";
+import { InlineListView } from "../components/node-views/InlineListView";
 
-export const ListNode = Node.create({
-  name: "list",
+export const InlineListNode = Node.create({
+  name: "inlineList",
   group: "layoutNode",
-  content: "listItem+",
+  content: "inlineListItem+",
 
   addAttributes() {
     return {
@@ -15,24 +15,27 @@ export const ListNode = Node.create({
       size: { default: "normal" },
       background: { default: "none" },
       defaultFormat: { default: {} },
-      defaultItemStyle: { default: "plain" },
       hideable: { default: false },
       placeholder: { default: "" },
     };
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-type="list"]' }];
+    return [{ tag: 'div[data-type="inline-list"]' }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ["div", mergeAttributes(HTMLAttributes, { "data-type": "list" }), 0];
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, { "data-type": "inline-list" }),
+      0,
+    ];
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(ListView, {
+    return ReactNodeViewRenderer(InlineListView, {
       as: "div",
-      className: "list",
+      className: "inline-list",
       attrs: ({ node }) => ({
         "data-sizing": String(node.attrs.sizing),
       }),

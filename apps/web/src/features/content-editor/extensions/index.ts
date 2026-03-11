@@ -9,6 +9,8 @@ import { GroupListNode } from "./group-list";
 import { GroupListInstanceNode } from "./group-list-instance";
 import { ListNode } from "./list";
 import { ListItemNode } from "./list-item";
+import { InlineListNode } from "./inline-list";
+import { InlineListItemNode } from "./inline-list-item";
 import { SelectionReset } from "./selection-reset";
 import { CaretJumpUndo } from "./caret-jump-undo";
 
@@ -43,6 +45,8 @@ export function createDocumentExtensions() {
     GroupListInstanceNode,
     ListNode,
     ListItemNode,
+    InlineListNode,
+    InlineListItemNode,
     CaretJumpUndo,
     SelectionReset,
   ];

@@ -28,10 +28,6 @@ type Scope = {
   groupLists: Record<string, GroupListInstance[]>;
 };
 
-type ListKind = "block" | "inlineCompat";
-
-type ListLikeBlock = List | InlineList;
-
 export function buildDocument(
   templateSpec: TemplateSpec,
   templateLayout: TemplateLayout,
@@ -58,11 +54,11 @@ function buildLayoutNodes(
     }
 
     if (node.type === "list") {
-      return buildList(node, scope, "block");
+      return buildList(node, scope);
     }
 
     if (node.type === "inlinelist") {
-      return buildList(node, scope, "inlineCompat");
+      return buildInlineList(node, scope);
     }
 
     const groupListDef = groupListDefs.find((g) => g.id === node.groupListId);
@@ -86,11 +82,11 @@ function buildRow(
       }
 
       if (block.type === "list") {
-        return buildList(block, scope, "block");
+        return buildList(block, scope);
       }
 
       if (block.type === "inlinelist") {
-        return buildList(block, scope, "inlineCompat");
+        return buildInlineList(block, scope);
       }
 
       return buildField(block, scope);
@@ -121,15 +117,14 @@ function buildField(
 }
 
 function buildList(
-  block: ListLikeBlock,
+  block: List,
   scope: Scope,
-  listKind: ListKind,
 ): JSONContent {
-  const defaultItemStyle = resolveDefaultItemStyle(block, listKind);
-  const configuredItems = listKind === "inlineCompat"
-    ? toInlineCompatItems(scope.inlineLists[block.listId] ?? [])
-    : toBlockListItems(scope.lists[block.listId] ?? [], defaultItemStyle);
-
+  const defaultItemStyle = block.defaultItemStyle ?? "plain";
+  const configuredItems = toBlockListItems(
+    scope.lists[block.listId] ?? [],
+    defaultItemStyle,
+  );
   const items = configuredItems.length > 0
     ? configuredItems
     : [{ style: defaultItemStyle, text: "" }];
@@ -138,7 +133,6 @@ function buildList(
     type: "list",
     attrs: {
       listId: block.listId,
-      listKind,
       sizing: block.sizing,
       font: block.font ?? "sans",
       size: block.size ?? "normal",
@@ -158,19 +152,30 @@ function buildList(
   };
 }
 
-function resolveDefaultItemStyle(
-  block: ListLikeBlock,
-  listKind: ListKind,
-): ListItemStyle {
-  if (listKind === "inlineCompat") {
-    return "plain";
-  }
+function buildInlineList(
+  block: InlineList,
+  scope: Scope,
+): JSONContent {
+  const items = scope.inlineLists[block.listId] ?? [];
+  const configuredItems = items.length > 0 ? items : [""];
 
-  return block.type === "list" ? block.defaultItemStyle ?? "plain" : "plain";
-}
-
-function toInlineCompatItems(items: string[]): ListItem[] {
-  return items.map((text) => ({ style: "plain", text }));
+  return {
+    type: "inlineList",
+    attrs: {
+      listId: block.listId,
+      sizing: block.sizing,
+      font: block.font ?? "sans",
+      size: block.size ?? "normal",
+      background: block.background ?? "none",
+      defaultFormat: block.defaultFormat ?? {},
+      hideable: block.hideable ?? false,
+      placeholder: block.placeholder ?? "",
+    },
+    content: configuredItems.map((item) => ({
+      type: "inlineListItem",
+      content: [htmlToParagraph(item)],
+    })),
+  };
 }
 
 function toBlockListItems(

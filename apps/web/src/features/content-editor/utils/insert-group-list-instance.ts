@@ -14,7 +14,7 @@ type DocumentMeta = {
   groupListLayouts: Record<string, LayoutNode[]>;
 };
 
-const EDITABLE_NODE_NAMES = new Set(["field", "listItem"]);
+const EDITABLE_NODE_NAMES = new Set(["field", "listItem", "inlineListItem"]);
 
 function readDocumentMeta(editor: Editor): DocumentMeta | null {
   const storage = editor.storage as unknown as Record<string, unknown>;

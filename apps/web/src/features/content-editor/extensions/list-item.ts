@@ -55,10 +55,6 @@ function isStyledListItem(style: unknown): boolean {
   return style === "bullet" || style === "numbered";
 }
 
-function isInlineCompatList(listNode: PMNode): boolean {
-  return listNode.attrs.listKind === "inlineCompat";
-}
-
 function resolveNextListItemStyle(
   listNode: PMNode,
   listItemNode: PMNode,
@@ -203,10 +199,6 @@ function createListStyleInputRule(
       }
 
       const listNode = $ruleStart.node(context.listDepth);
-      if (isInlineCompatList(listNode)) {
-        return null;
-      }
-
       if (range.from !== $ruleStart.start()) {
         return null;
       }
@@ -291,7 +283,7 @@ export const ListItemNode = Node.create({
         const listNode = $from.node(listDepth);
         const listItemNode = $from.node(listItemDepth);
 
-        if (!isInlineCompatList(listNode) && (!empty || !isListItemEmpty(listItemNode))) {
+        if (!empty || !isListItemEmpty(listItemNode)) {
           const nextStyle = resolveNextListItemStyle(listNode, listItemNode);
           return splitItemWithStyleAndSeed(
             state,
@@ -299,23 +291,6 @@ export const ListItemNode = Node.create({
             editor.view,
             nextStyle,
             listNode.attrs.defaultFormat,
-          );
-        }
-
-        if (!empty) {
-          return splitItemWithCurrentBehavior(
-            state,
-            editor.view.dispatch,
-            editor.view,
-          );
-        }
-
-        const itemIsEmpty = isListItemEmpty(listItemNode);
-        if (!itemIsEmpty) {
-          return splitItemWithCurrentBehavior(
-            state,
-            editor.view.dispatch,
-            editor.view,
           );
         }
 
@@ -369,7 +344,7 @@ export const ListItemNode = Node.create({
 
         if (!caretAtStart) return false;
 
-        if (!isInlineCompatList(listNode) && isStyledListItem(listItemNode.attrs.style)) {
+        if (isStyledListItem(listItemNode.attrs.style)) {
           const listItemPos = $from.before(listItemDepth);
           const tr = state.tr.setNodeMarkup(listItemPos, undefined, {
             ...listItemNode.attrs,

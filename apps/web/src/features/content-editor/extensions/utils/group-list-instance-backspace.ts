@@ -7,7 +7,7 @@ type GroupListInstanceContext = {
   parentGroupListNode: PMNode;
 };
 
-const EDITABLE_NODE_NAMES = new Set(["field", "listItem"]);
+const EDITABLE_NODE_NAMES = new Set(["field", "listItem", "inlineListItem"]);
 
 export function maybeDeleteEmptyGroupListInstanceAndJump(
   state: EditorState,

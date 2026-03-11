@@ -17,10 +17,6 @@ export type JSONContent = {
   marks?: { type: string; attrs?: Record<string, unknown> }[];
 };
 
-type ListKind = "block" | "inlineCompat";
-
-type ListLikeBlock = List | InlineList;
-
 export function buildEmptyParagraphJSON(): JSONContent {
   return { type: "paragraph" };
 }
@@ -37,6 +33,13 @@ export function buildEmptyListItemJSON(style: ListItemStyle = "plain"): JSONCont
   };
 }
 
+export function buildEmptyInlineListItemJSON(): JSONContent {
+  return {
+    type: "inlineListItem",
+    content: [buildEmptyParagraphJSON()],
+  };
+}
+
 export function buildEmptyListItemFromNodeJSON(node: PMNode): JSONContent {
   if (node.type.name === "listItem") {
     return buildEmptyListItemJSON(normalizeListItemStyle(node.attrs.style, "plain"));
@@ -49,6 +52,18 @@ export function buildEmptyListItemFromNodeJSON(node: PMNode): JSONContent {
   }
 
   return buildEmptyListItemJSON();
+}
+
+export function buildEmptyInlineListItemFromNodeJSON(node: PMNode): JSONContent {
+  if (node.type.name === "inlineListItem") {
+    return buildEmptyInlineListItemJSON();
+  }
+
+  if (node.type.name === "inlineList") {
+    return buildEmptyInlineListItemJSON();
+  }
+
+  return buildEmptyInlineListItemJSON();
 }
 
 export function buildEmptyFieldFromNodeJSON(node: PMNode): JSONContent {
@@ -68,6 +83,14 @@ export function buildEmptyListFromNodeJSON(node: PMNode): JSONContent {
   };
 }
 
+export function buildEmptyInlineListFromNodeJSON(node: PMNode): JSONContent {
+  const json = node.toJSON() as JSONContent;
+  return {
+    ...json,
+    content: [buildEmptyInlineListItemJSON()],
+  };
+}
+
 export function rewriteRowChildJSON(
   node: PMNode,
   mode: "copy" | "empty",
@@ -82,6 +105,10 @@ export function rewriteRowChildJSON(
 
   if (node.type.name === "list") {
     return buildEmptyListFromNodeJSON(node);
+  }
+
+  if (node.type.name === "inlineList") {
+    return buildEmptyInlineListFromNodeJSON(node);
   }
 
   return node.toJSON() as JSONContent;
@@ -112,11 +139,11 @@ function buildEmptyLayoutNodes(
           }
 
           if (block.type === "list") {
-            return buildEmptyListJSON(block, "block");
+            return buildEmptyListJSON(block);
           }
 
           if (block.type === "inlinelist") {
-            return buildEmptyListJSON(block, "inlineCompat");
+            return buildEmptyInlineListJSON(block);
           }
 
           return buildEmptyFieldJSON(block);
@@ -125,11 +152,11 @@ function buildEmptyLayoutNodes(
     }
 
     if (node.type === "list") {
-      return buildEmptyListJSON(node, "block");
+      return buildEmptyListJSON(node);
     }
 
     if (node.type === "inlinelist") {
-      return buildEmptyListJSON(node, "inlineCompat");
+      return buildEmptyInlineListJSON(node);
     }
 
     const groupListDef = groupListDefs.find((group) => group.id === node.groupListId);
@@ -162,14 +189,13 @@ function buildEmptyFieldJSON(block: Field): JSONContent {
   };
 }
 
-function buildEmptyListJSON(block: ListLikeBlock, listKind: ListKind): JSONContent {
-  const defaultItemStyle = resolveDefaultItemStyle(block, listKind);
+function buildEmptyListJSON(block: List): JSONContent {
+  const defaultItemStyle = block.defaultItemStyle ?? "plain";
 
   return {
     type: "list",
     attrs: {
       listId: block.listId,
-      listKind,
       sizing: block.sizing,
       font: block.font ?? "sans",
       size: block.size ?? "normal",
@@ -183,15 +209,21 @@ function buildEmptyListJSON(block: ListLikeBlock, listKind: ListKind): JSONConte
   };
 }
 
-function resolveDefaultItemStyle(
-  block: ListLikeBlock,
-  listKind: ListKind,
-): ListItemStyle {
-  if (listKind === "inlineCompat") {
-    return "plain";
-  }
-
-  return block.type === "list" ? block.defaultItemStyle ?? "plain" : "plain";
+function buildEmptyInlineListJSON(block: InlineList): JSONContent {
+  return {
+    type: "inlineList",
+    attrs: {
+      listId: block.listId,
+      sizing: block.sizing,
+      font: block.font ?? "sans",
+      size: block.size ?? "normal",
+      background: block.background ?? "none",
+      defaultFormat: block.defaultFormat ?? {},
+      hideable: block.hideable ?? false,
+      placeholder: block.placeholder ?? "",
+    },
+    content: [buildEmptyInlineListItemJSON()],
+  };
 }
 
 function normalizeListItemStyle(

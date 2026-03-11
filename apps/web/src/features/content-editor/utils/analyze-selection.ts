@@ -24,6 +24,7 @@ import {
 } from "./node-json";
 import { rewriteGroupListNode } from "./rewrite-group-list";
 import { rewriteListNode } from "./rewrite-list";
+import { rewriteInlineListNode } from "./rewrite-inline-list";
 
 export type SelectionAnalysis = {
   doc: JSONContent;
@@ -94,6 +95,10 @@ function rewriteLayoutNode(
     return rewriteListNode(node, nodeStart, selectionFrom, selectionTo);
   }
 
+  if (node.type.name === "inlineList") {
+    return rewriteInlineListNode(node, nodeStart, selectionFrom, selectionTo);
+  }
+
   if (node.type.name === "groupList") {
     return rewriteGroupListNode(
       node,
@@ -131,6 +136,15 @@ function rewriteRowNode(
 
       if (child.type.name === "list") {
         return rewriteListNode(child, childStart, selectionFrom, selectionTo);
+      }
+
+      if (child.type.name === "inlineList") {
+        return rewriteInlineListNode(
+          child,
+          childStart,
+          selectionFrom,
+          selectionTo,
+        );
       }
 
       return unchanged(child);

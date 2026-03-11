@@ -1,8 +1,12 @@
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { Selection } from "@tiptap/pm/state";
 
-const PREVIOUS_EDITABLE_BLOCK_NAMES = new Set(["field", "list"]);
-const NEXT_EDITABLE_TARGET_NAMES = new Set(["field", "listItem"]);
+const PREVIOUS_EDITABLE_BLOCK_NAMES = new Set(["field", "list", "inlineList"]);
+const NEXT_EDITABLE_TARGET_NAMES = new Set([
+  "field",
+  "listItem",
+  "inlineListItem",
+]);
 
 export type EditableBlock = {
   pos: number;

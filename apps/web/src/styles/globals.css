@@ -220,22 +220,6 @@ div[data-type="group-list"] {
   padding: 0.5rem 0;
 } */
 
-/* Inline lists: NodeViewContent carries `flex` classes when inline=true.
-   Scope to the list-level contentDOM so nested list-item contentDOMs stay block. */
-.list[data-inline="true"]
-  > *
-  > [data-node-view-content].flex
-  > [data-node-view-content-react] {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.list > [data-node-view-content].flex {
-  width: 100%;
-}
-
 /* Placeholder via pseudo-element — not part of the DOM, never selectable */
 [data-placeholder]::before {
   content: attr(data-placeholder);

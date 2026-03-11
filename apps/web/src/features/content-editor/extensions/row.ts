@@ -3,7 +3,7 @@ import { Node, mergeAttributes } from "@tiptap/core";
 export const RowNode = Node.create({
   name: "row",
   group: "layoutNode",
-  content: "(field | decorator | list)+",
+  content: "(field | decorator | list | inlineList)+",
 
   parseHTML() {
     return [{ tag: 'div[data-type="row"]' }];

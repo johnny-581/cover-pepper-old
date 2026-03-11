@@ -1,4 +1,4 @@
-import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
+import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { cn } from "@/lib/utils";
 
@@ -19,14 +19,8 @@ const bgClasses: Record<string, string> = {
   yellow: "bg-cream dark:bg-cream-dim",
 };
 
-export function ListView({ node }: NodeViewProps) {
-  const {
-    font,
-    size,
-    background,
-    defaultFormat,
-    sizing,
-  } = node.attrs;
+export function InlineListView({ node }: NodeViewProps) {
+  const { font, size, background, defaultFormat, sizing } = node.attrs;
   const baseFormat = (defaultFormat ?? {}) as {
     bold?: boolean;
     italic?: boolean;
@@ -36,7 +30,7 @@ export function ListView({ node }: NodeViewProps) {
   return (
     <NodeViewWrapper
       className={cn(
-        "relative min-w-0 flex flex-col",
+        "inline-list relative min-w-0 flex items-stretch",
         sizing === "fill" && "flex-1 basis-0 min-w-1",
         sizing === "hug" && "shrink-0",
         fontClasses[(font as string) ?? "sans"] ?? "",
@@ -47,7 +41,7 @@ export function ListView({ node }: NodeViewProps) {
         baseFormat.underline && "underline",
       )}
     >
-      <NodeViewContent />
+      <NodeViewContent className="flex flex-wrap items-center gap-1.5 w-full" />
     </NodeViewWrapper>
   );
 }

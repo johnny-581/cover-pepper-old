@@ -31,7 +31,6 @@ function resolveNumberedRunIndex(
 export function ListItemView({ editor, getPos, node }: NodeViewProps) {
   const pos = getPos();
 
-  let isInline = false;
   let marker: string | null = null;
   let showPlaceholder = false;
   let placeholderText = "";
@@ -41,8 +40,6 @@ export function ListItemView({ editor, getPos, node }: NodeViewProps) {
     const parentNode = $pos.parent;
 
     if (parentNode.type.name === "list") {
-      isInline = parentNode.attrs.listKind === "inlineCompat";
-
       const parentPlaceholder = parentNode.attrs.placeholder;
       placeholderText =
         typeof parentPlaceholder === "string"
@@ -60,14 +57,12 @@ export function ListItemView({ editor, getPos, node }: NodeViewProps) {
         isFirstItem &&
         isItemEmpty;
 
-      if (!isInline) {
-        const style = normalizeListItemStyle(node.attrs.style);
-        if (style === "bullet") {
-          marker = "•";
-        } else if (style === "numbered") {
-          const number = resolveNumberedRunIndex(parentNode, itemIndex);
-          marker = `${number}.`;
-        }
+      const style = normalizeListItemStyle(node.attrs.style);
+      if (style === "bullet") {
+        marker = "•";
+      } else if (style === "numbered") {
+        const number = resolveNumberedRunIndex(parentNode, itemIndex);
+        marker = `${number}.`;
       }
     }
   }

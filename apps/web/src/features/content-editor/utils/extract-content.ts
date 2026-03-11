@@ -37,6 +37,8 @@ function extractLayoutNode(node: PMNode, scope: Scope) {
         extractField(child, scope);
       } else if (child.type.name === "list") {
         extractList(child, scope);
+      } else if (child.type.name === "inlineList") {
+        extractInlineList(child, scope);
       }
     });
     return;
@@ -44,6 +46,11 @@ function extractLayoutNode(node: PMNode, scope: Scope) {
 
   if (node.type.name === "list") {
     extractList(node, scope);
+    return;
+  }
+
+  if (node.type.name === "inlineList") {
+    extractInlineList(node, scope);
     return;
   }
 
@@ -101,10 +108,6 @@ function extractList(node: PMNode, scope: Scope) {
   const listId = node.attrs.listId as string | undefined;
   if (!listId) return;
 
-  const listKind = node.attrs.listKind === "inlineCompat"
-    ? "inlineCompat"
-    : "block";
-
   const defaultItemStyle = normalizeListItemStyle(
     node.attrs.defaultItemStyle,
     "plain",
@@ -127,12 +130,28 @@ function extractList(node: PMNode, scope: Scope) {
     });
   });
 
-  if (listKind === "inlineCompat") {
-    scope.inlineLists[listId] = items.map((item) => item.text);
-    return;
-  }
-
   scope.lists[listId] = items;
+}
+
+function extractInlineList(node: PMNode, scope: Scope) {
+  const listId = node.attrs.listId as string | undefined;
+  if (!listId) return;
+
+  const items: string[] = [];
+  node.forEach((inlineListItem) => {
+    if (inlineListItem.type.name !== "inlineListItem") return;
+
+    let html = "";
+    inlineListItem.forEach((para) => {
+      if (para.type.name === "paragraph") {
+        html = paragraphToHTML(para);
+      }
+    });
+
+    items.push(html);
+  });
+
+  scope.inlineLists[listId] = items;
 }
 
 function normalizeListItemStyle(
@@ -188,7 +207,7 @@ function escapeHTML(str: string): string {
 function escapeAttr(str: string): string {
   return str
     .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
+    .replace(/\"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
