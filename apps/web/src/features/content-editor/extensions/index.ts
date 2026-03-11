@@ -1,6 +1,7 @@
 import { Node } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import Underline from "@tiptap/extension-underline";
 import { RowNode } from "./row";
 import { FieldNode } from "./field";
 import { DecoratorNode } from "./decorator";
@@ -34,6 +35,7 @@ export function createDocumentExtensions() {
     }),
     CustomDocument,
     Link.configure({ openOnClick: false }),
+    Underline,
     RowNode,
     FieldNode,
     DecoratorNode,

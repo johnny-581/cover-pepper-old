@@ -1,6 +1,7 @@
 export type {
   FieldDef,
   ListDef,
+  InlineListDef,
   GroupListDef,
   TemplateSpec,
   TemplateLayout,
@@ -11,11 +12,16 @@ export type {
   Field,
   Decorator,
   List,
-  ItemStyle,
-  FieldStyle,
-  FontToken,
-  BackgroundToken,
-  OutputStyle,
+  InlineList,
+  FontFamily,
+  FontSize,
+  Background,
+  DefaultFormat,
 } from "./types/template";
 
-export type { FileContent, GroupListInstance } from "./types/content";
+export type {
+  FileContent,
+  GroupListInstance,
+  ListItemStyle,
+  ListItem,
+} from "./types/content";

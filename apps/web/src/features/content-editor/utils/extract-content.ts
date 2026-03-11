@@ -1,19 +1,32 @@
 import type { Node as PMNode } from "@tiptap/pm/model";
-import type { FileContent, GroupListInstance } from "@pepper-apply/shared";
+import type {
+  FileContent,
+  GroupListInstance,
+  ListItem,
+  ListItemStyle,
+} from "@pepper-apply/shared";
 
 type Scope = {
   fields: Record<string, string>;
-  lists: Record<string, string[]>;
+  lists: Record<string, ListItem[]>;
+  inlineLists: Record<string, string[]>;
   groupLists: Record<string, GroupListInstance[]>;
 };
 
 let hasWarnedAboutMalformedField = false;
 
 export function extractContent(doc: PMNode): FileContent {
-  const result: FileContent = { fields: {}, lists: {}, groupLists: {} };
+  const result: FileContent = {
+    fields: {},
+    lists: {},
+    inlineLists: {},
+    groupLists: {},
+  };
+
   doc.forEach((topNode) => {
     extractLayoutNode(topNode, result);
   });
+
   return result;
 }
 
@@ -26,28 +39,42 @@ function extractLayoutNode(node: PMNode, scope: Scope) {
         extractList(child, scope);
       }
     });
-  } else if (node.type.name === "list") {
-    extractList(node, scope);
-  } else if (node.type.name === "groupList") {
-    const groupListId = node.attrs.groupListId as string;
-    if (!scope.groupLists[groupListId]) {
-      scope.groupLists[groupListId] = [];
-    }
-    node.forEach((instanceNode) => {
-      if (instanceNode.type.name === "groupListInstance") {
-        const instance: GroupListInstance = {
-          _key: instanceNode.attrs.instanceKey as string,
-          fields: {},
-          lists: {},
-          groupLists: {},
-        };
-        instanceNode.forEach((innerNode) => {
-          extractLayoutNode(innerNode, instance);
-        });
-        scope.groupLists[groupListId].push(instance);
-      }
-    });
+    return;
   }
+
+  if (node.type.name === "list") {
+    extractList(node, scope);
+    return;
+  }
+
+  if (node.type.name !== "groupList") {
+    return;
+  }
+
+  const groupListId = node.attrs.groupListId as string;
+  if (!scope.groupLists[groupListId]) {
+    scope.groupLists[groupListId] = [];
+  }
+
+  node.forEach((instanceNode) => {
+    if (instanceNode.type.name !== "groupListInstance") {
+      return;
+    }
+
+    const instance: GroupListInstance = {
+      _key: instanceNode.attrs.instanceKey as string,
+      fields: {},
+      lists: {},
+      inlineLists: {},
+      groupLists: {},
+    };
+
+    instanceNode.forEach((innerNode) => {
+      extractLayoutNode(innerNode, instance);
+    });
+
+    scope.groupLists[groupListId].push(instance);
+  });
 }
 
 function extractField(node: PMNode, scope: Scope) {
@@ -66,39 +93,81 @@ function extractField(node: PMNode, scope: Scope) {
       html = paragraphToHTML(child);
     }
   });
+
   scope.fields[fieldId as string] = html;
 }
 
 function extractList(node: PMNode, scope: Scope) {
-  const { listId } = node.attrs;
-  const items: string[] = [];
+  const listId = node.attrs.listId as string | undefined;
+  if (!listId) return;
+
+  const listKind = node.attrs.listKind === "inlineCompat"
+    ? "inlineCompat"
+    : "block";
+
+  const defaultItemStyle = normalizeListItemStyle(
+    node.attrs.defaultItemStyle,
+    "plain",
+  );
+
+  const items: ListItem[] = [];
   node.forEach((listItem) => {
-    if (listItem.type.name === "listItem") {
-      listItem.forEach((para) => {
-        items.push(paragraphToHTML(para));
-      });
-    }
+    if (listItem.type.name !== "listItem") return;
+
+    let html = "";
+    listItem.forEach((para) => {
+      if (para.type.name === "paragraph") {
+        html = paragraphToHTML(para);
+      }
+    });
+
+    items.push({
+      style: normalizeListItemStyle(listItem.attrs.style, defaultItemStyle),
+      text: html,
+    });
   });
-  scope.lists[listId as string] = items;
+
+  if (listKind === "inlineCompat") {
+    scope.inlineLists[listId] = items.map((item) => item.text);
+    return;
+  }
+
+  scope.lists[listId] = items;
+}
+
+function normalizeListItemStyle(
+  style: unknown,
+  fallback: ListItemStyle,
+): ListItemStyle {
+  if (style === "plain" || style === "bullet" || style === "numbered") {
+    return style;
+  }
+
+  return fallback;
 }
 
 /**
  * Serialize a PM paragraph node's inline content to an HTML string.
- * Handles bold, italic, and link marks.
+ * Handles bold, italic, underline, and link marks.
  */
 function paragraphToHTML(para: PMNode): string {
   let html = "";
   para.forEach((inline) => {
     if (inline.isText) {
       let text = escapeHTML(inline.text ?? "");
-      // Sort marks to ensure consistent nesting (link outermost, then bold, then italic)
       const marks = [...inline.marks].sort((a, b) => {
-        const order: Record<string, number> = { link: 0, bold: 1, italic: 2 };
+        const order: Record<string, number> = {
+          link: 0,
+          bold: 1,
+          italic: 2,
+          underline: 3,
+        };
         return (order[a.type.name] ?? 3) - (order[b.type.name] ?? 3);
       });
       for (const mark of marks) {
         if (mark.type.name === "bold") text = `<b>${text}</b>`;
         else if (mark.type.name === "italic") text = `<i>${text}</i>`;
+        else if (mark.type.name === "underline") text = `<u>${text}</u>`;
         else if (mark.type.name === "link") {
           text = `<a href="${escapeAttr(mark.attrs.href as string)}">${text}</a>`;
         }

@@ -131,7 +131,9 @@ export function rewriteListNode(
   }
 
   if (content.length === 0) {
-    const emptyItem = buildEmptyListItemFromNodeJSON(listNode.firstChild ?? listNode);
+    // Preserve list item style when recreating the mandatory empty row.
+    const styleSourceNode = listNode.firstChild ?? listNode;
+    const emptyItem = buildEmptyListItemFromNodeJSON(styleSourceNode);
     content.push(emptyItem);
     changed = true;
     anchor ??= prependPath(0, findFirstEditablePath(emptyItem));

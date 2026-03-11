@@ -4,7 +4,7 @@ import type {
   TemplateLayout,
   TemplateSpec,
 } from "@pepper-apply/shared";
-import { content } from "@/data/resume/content";
+import { templateContent } from "@/data/resume/content";
 import { templateLayout } from "@/data/resume/template-layout";
 import { templateSpec } from "@/data/resume/template-spec";
 
@@ -18,6 +18,6 @@ type EditorState = {
 export const useEditorStore = create<EditorState>((set) => ({
   templateSpec,
   templateLayout,
-  content: content,
+  content: templateContent,
   setContent: (content) => set({ content }),
 }));

@@ -3,12 +3,14 @@ import type { NodeViewProps } from "@tiptap/react";
 import { cn } from "@/lib/utils";
 
 const fontClasses: Record<string, string> = {
-  "sans-lg": "font-sans text-2xl",
-  "sans-md": "font-sans text-lg",
-  "sans-sm": "font-sans text-sm",
-  "serif-lg": "font-serif text-2xl",
-  "serif-md": "font-serif text-lg",
-  "serif-sm": "font-serif text-sm",
+  sans: "font-sans",
+  serif: "font-serif",
+};
+
+const sizeClasses: Record<string, string> = {
+  small: "text-sm",
+  normal: "text-base",
+  heading: "text-2xl",
 };
 
 const bgClasses: Record<string, string> = {
@@ -18,8 +20,13 @@ const bgClasses: Record<string, string> = {
 };
 
 export function FieldView({ node }: NodeViewProps) {
-  const { font, background, sizing, bold, italic, underline, placeholder } =
+  const { font, size, background, sizing, defaultFormat, placeholder } =
     node.attrs;
+  const baseFormat = (defaultFormat ?? {}) as {
+    bold?: boolean;
+    italic?: boolean;
+    underline?: boolean;
+  };
 
   // Field always has exactly one paragraph child
   const isEmpty =
@@ -31,12 +38,12 @@ export function FieldView({ node }: NodeViewProps) {
     <NodeViewWrapper
       className={cn(
         "field relative min-w-0 rounded px-1.5",
-        fontClasses[font as string] ?? "",
+        fontClasses[(font as string) ?? "sans"] ?? "",
+        sizeClasses[(size as string) ?? "normal"] ?? "",
         bgClasses[background as string] ?? "",
-        bold && "font-bold",
-        italic && "italic",
-        underline && "underline",
-        // "bg-amber-700",
+        baseFormat.bold && "font-bold",
+        baseFormat.italic && "italic",
+        baseFormat.underline && "underline",
       )}
     >
       {/* Invisible placeholder text to reserve width for hug-sized fields */}

@@ -10,14 +10,15 @@ export const ListNode = Node.create({
   addAttributes() {
     return {
       listId: { default: "" },
-      inline: { default: false },
+      listKind: { default: "block" },
       sizing: { default: "fill" },
-      display: { default: "plain" },
+      font: { default: "sans" },
+      size: { default: "normal" },
+      background: { default: "none" },
+      defaultFormat: { default: {} },
+      defaultItemStyle: { default: "plain" },
+      hideable: { default: false },
       placeholder: { default: "" },
-      font: { default: "sans-sm" },
-      bold: { default: false },
-      italic: { default: false },
-      underline: { default: false },
     };
   },
 
@@ -34,9 +35,8 @@ export const ListNode = Node.create({
       as: "div",
       className: "list",
       attrs: ({ node }) => ({
-        "data-inline": String(node.attrs.inline),
+        "data-list-kind": String(node.attrs.listKind),
         "data-sizing": String(node.attrs.sizing),
-        "data-display": String(node.attrs.display),
       }),
     });
   },

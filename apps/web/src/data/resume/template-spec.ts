@@ -2,12 +2,14 @@ import type { TemplateSpec } from "@pepper-apply/shared";
 
 export const templateSpec: TemplateSpec = {
   fields: [{ id: "name" }],
-  lists: [{ id: "contacts", itemId: "contact" }],
+  lists: [],
+  inlineLists: [{ id: "contacts" }],
   groupLists: [
     {
       id: "sections",
       fields: [{ id: "sectionTitle" }],
       lists: [],
+      inlineLists: [],
       groupLists: [
         {
           id: "entries",
@@ -18,10 +20,8 @@ export const templateSpec: TemplateSpec = {
             { id: "endDate" },
             { id: "location", optional: true },
           ],
-          lists: [
-            { id: "tags", itemId: "tag" },
-            { id: "highlights", itemId: "highlight" },
-          ],
+          lists: [{ id: "highlights" }],
+          inlineLists: [{ id: "tags" }],
           groupLists: [],
         },
       ],

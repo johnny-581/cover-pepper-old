@@ -5,9 +5,12 @@ import type {
   RowBlock,
   Field,
   List,
+  InlineList,
   GroupListDef,
   TemplateLayout,
   TemplateSpec,
+  ListItem,
+  ListItemStyle,
 } from "@pepper-apply/shared";
 
 type JSONContent = {
@@ -20,9 +23,14 @@ type JSONContent = {
 
 type Scope = {
   fields: Record<string, string>;
-  lists: Record<string, string[]>;
+  lists: Record<string, ListItem[]>;
+  inlineLists: Record<string, string[]>;
   groupLists: Record<string, GroupListInstance[]>;
 };
+
+type ListKind = "block" | "inlineCompat";
+
+type ListLikeBlock = List | InlineList;
 
 export function buildDocument(
   templateSpec: TemplateSpec,
@@ -48,13 +56,20 @@ function buildLayoutNodes(
     if (node.type === "row") {
       return buildRow(node.blocks, scope);
     }
+
     if (node.type === "list") {
-      return buildList(node, scope, false);
+      return buildList(node, scope, "block");
     }
-    // groupList
+
+    if (node.type === "inlinelist") {
+      return buildList(node, scope, "inlineCompat");
+    }
+
     const groupListDef = groupListDefs.find((g) => g.id === node.groupListId);
-    if (!groupListDef)
+    if (!groupListDef) {
       throw new Error(`Unknown group list: ${node.groupListId}`);
+    }
+
     return buildGroupList(node.groupListId, groupListDef, node.layout, scope);
   });
 }
@@ -69,9 +84,15 @@ function buildRow(
       if (block.type === "decorator") {
         return { type: "decorator", attrs: { text: block.text } };
       }
+
       if (block.type === "list") {
-        return buildList(block, scope, true);
+        return buildList(block, scope, "block");
       }
+
+      if (block.type === "inlinelist") {
+        return buildList(block, scope, "inlineCompat");
+      }
+
       return buildField(block, scope);
     }),
   };
@@ -82,47 +103,95 @@ function buildField(
   scope: Scope,
 ): JSONContent {
   const html = scope.fields[block.fieldId] ?? "";
+
   return {
     type: "field",
     attrs: {
       fieldId: block.fieldId,
       sizing: block.sizing,
-      font: block.style.font,
-      background: block.style.background,
-      bold: block.outputStyle.bold,
-      italic: block.outputStyle.italic,
-      underline: block.outputStyle.underline,
-      placeholder: block.placeholder,
+      font: block.font ?? "sans",
+      size: block.size ?? "normal",
+      background: block.background ?? "none",
+      defaultFormat: block.defaultFormat ?? {},
+      hideable: block.hideable ?? false,
+      placeholder: block.placeholder ?? "",
     },
     content: [htmlToParagraph(html)],
   };
 }
 
 function buildList(
-  block: List,
+  block: ListLikeBlock,
   scope: Scope,
-  inline: boolean,
+  listKind: ListKind,
 ): JSONContent {
-  const items = scope.lists[block.listId] ?? [];
-  const actualItems = items.length > 0 ? items : [""];
+  const defaultItemStyle = resolveDefaultItemStyle(block, listKind);
+  const configuredItems = listKind === "inlineCompat"
+    ? toInlineCompatItems(scope.inlineLists[block.listId] ?? [])
+    : toBlockListItems(scope.lists[block.listId] ?? [], defaultItemStyle);
+
+  const items = configuredItems.length > 0
+    ? configuredItems
+    : [{ style: defaultItemStyle, text: "" }];
+
   return {
     type: "list",
     attrs: {
       listId: block.listId,
-      inline,
+      listKind,
       sizing: block.sizing,
-      display: block.display,
-      placeholder: block.placeholder,
-      font: block.itemStyle.font,
-      bold: block.itemStyle.outputStyle.bold,
-      italic: block.itemStyle.outputStyle.italic,
-      underline: block.itemStyle.outputStyle.underline,
+      font: block.font ?? "sans",
+      size: block.size ?? "normal",
+      background: block.background ?? "none",
+      defaultFormat: block.defaultFormat ?? {},
+      defaultItemStyle,
+      hideable: block.hideable ?? false,
+      placeholder: block.placeholder ?? "",
     },
-    content: actualItems.map((html) => ({
+    content: items.map((item) => ({
       type: "listItem",
-      content: [htmlToParagraph(html)],
+      attrs: {
+        style: item.style,
+      },
+      content: [htmlToParagraph(item.text)],
     })),
   };
+}
+
+function resolveDefaultItemStyle(
+  block: ListLikeBlock,
+  listKind: ListKind,
+): ListItemStyle {
+  if (listKind === "inlineCompat") {
+    return "plain";
+  }
+
+  return block.type === "list" ? block.defaultItemStyle ?? "plain" : "plain";
+}
+
+function toInlineCompatItems(items: string[]): ListItem[] {
+  return items.map((text) => ({ style: "plain", text }));
+}
+
+function toBlockListItems(
+  items: ListItem[],
+  fallbackStyle: ListItemStyle,
+): ListItem[] {
+  return items.map((item) => ({
+    style: normalizeListItemStyle(item.style, fallbackStyle),
+    text: item.text ?? "",
+  }));
+}
+
+function normalizeListItemStyle(
+  style: unknown,
+  fallback: ListItemStyle,
+): ListItemStyle {
+  if (style === "plain" || style === "bullet" || style === "numbered") {
+    return style;
+  }
+
+  return fallback;
 }
 
 function buildGroupList(
@@ -132,6 +201,7 @@ function buildGroupList(
   scope: Scope,
 ): JSONContent {
   const instances = scope.groupLists[groupListId] ?? [];
+
   return {
     type: "groupList",
     attrs: { groupListId },
@@ -166,12 +236,11 @@ function htmlToParagraph(html: string): JSONContent {
 
 /**
  * Parse inline HTML string into an array of TipTap text nodes with marks.
- * Handles <b>, <i>, <a href="...">, and nested combinations.
+ * Handles <b>, <i>, <u>, <a href="...">, and nested combinations.
  */
 function parseInlineHTML(html: string): JSONContent[] {
   const results: JSONContent[] = [];
 
-  // Use a temporary DOM parser
   const template = document.createElement("template");
   template.innerHTML = html;
 
@@ -196,6 +265,10 @@ function parseInlineHTML(html: string): JSONContent[] {
         newMarks.push({ type: "bold" });
       } else if (tag === "i" || tag === "em") {
         newMarks.push({ type: "italic" });
+      } else if (tag === "u") {
+        newMarks.push({ type: "underline" });
+      } else if (tag === "span" && hasUnderlineStyle(el.getAttribute("style"))) {
+        newMarks.push({ type: "underline" });
       } else if (tag === "a") {
         newMarks.push({
           type: "link",
@@ -217,4 +290,10 @@ function parseInlineHTML(html: string): JSONContent[] {
   }
 
   return results;
+}
+
+function hasUnderlineStyle(style: string | null): boolean {
+  if (!style) return false;
+
+  return /text-decoration(?:-line)?\s*:\s*[^;]*underline/i.test(style);
 }

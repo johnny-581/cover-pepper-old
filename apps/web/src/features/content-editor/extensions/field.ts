@@ -118,11 +118,11 @@ export const FieldNode = Node.create({
     return {
       fieldId: { default: "" },
       sizing: { default: "fill" },
-      font: { default: "sans-sm" },
+      font: { default: "sans" },
+      size: { default: "normal" },
       background: { default: "none" },
-      bold: { default: false },
-      italic: { default: false },
-      underline: { default: false },
+      defaultFormat: { default: {} },
+      hideable: { default: false },
       placeholder: { default: "" },
     };
   },

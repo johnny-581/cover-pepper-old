@@ -1,25 +1,26 @@
-// ── Schema definitions (unchanged) ──
+import type { ListItemStyle } from "./content";
 
 export type FieldDef = { id: string; optional?: boolean };
-export type ListDef = { id: string; itemId: string };
+export type ListDef = { id: string };
+export type InlineListDef = { id: string };
 export type GroupListDef = {
   id: string;
   fields: FieldDef[];
   lists: ListDef[];
+  inlineLists: InlineListDef[];
   groupLists: GroupListDef[];
 };
 
 export type TemplateSpec = {
   fields: FieldDef[];
   lists: ListDef[];
+  inlineLists: InlineListDef[];
   groupLists: GroupListDef[];
 };
 
-// ── Layout ──
-
 export type TemplateLayout = LayoutNode[];
 
-export type LayoutNode = Row | List | GroupList;
+export type LayoutNode = Row | List | InlineList | GroupList;
 
 export type Row = { type: "row"; blocks: RowBlock[] };
 
@@ -29,52 +30,52 @@ export type GroupList = {
   layout: LayoutNode[];
 };
 
-export type RowBlock = Field | Decorator | List;
+export type RowBlock = Field | Decorator | List | InlineList;
+
+export type FontFamily = "sans" | "serif";
+export type FontSize = "small" | "normal" | "heading";
+export type Background = "none" | "grey" | "yellow";
+export type DefaultFormat = {
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+};
 
 export type Field = {
   type: "field";
   fieldId: string;
   sizing: "fill" | "hug";
-  placeholder: string;
-  style: FieldStyle;
-  outputStyle: OutputStyle;
+  hideable?: boolean;
+  placeholder?: string;
+  font?: FontFamily;
+  size?: FontSize;
+  background?: Background;
+  defaultFormat?: DefaultFormat;
 };
 
 export type Decorator = { type: "decorator"; text: string };
 
-/**
- * Single type for both inline (in-row) and standalone lists.
- * Rendering direction is determined by context:
- * - Inside a Row → horizontal, each item hugs content
- * - Standalone (top-level / in groupList layout) → vertical
- */
 export type List = {
   type: "list";
   listId: string;
   sizing: "fill" | "hug";
-  placeholder: string;
-  display: "plain" | "bulleted";
-  itemStyle: ItemStyle;
+  hideable?: boolean;
+  placeholder?: string;
+  font?: FontFamily;
+  size?: FontSize;
+  background?: Background;
+  defaultFormat?: DefaultFormat;
+  defaultItemStyle?: ListItemStyle;
 };
 
-export type ItemStyle = {
-  font: FontToken;
-  outputStyle: OutputStyle;
+export type InlineList = {
+  type: "inlinelist";
+  listId: string;
+  sizing: "fill" | "hug";
+  hideable?: boolean;
+  placeholder?: string;
+  font?: FontFamily;
+  size?: FontSize;
+  background?: Background;
+  defaultFormat?: DefaultFormat;
 };
-
-export type FieldStyle = {
-  font: FontToken;
-  background: BackgroundToken;
-};
-
-export type FontToken =
-  | "sans-lg"
-  | "sans-md"
-  | "sans-sm"
-  | "serif-lg"
-  | "serif-md"
-  | "serif-sm";
-
-export type BackgroundToken = "none" | "grey" | "yellow";
-
-export type OutputStyle = { bold: boolean; italic: boolean; underline: boolean };

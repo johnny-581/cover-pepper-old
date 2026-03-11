@@ -52,6 +52,14 @@ A **group list** is a repeating set of multiple fields (e.g. a job entry with ti
 
 Decorative texts (e.g. a "–" between two date fields) can appear between blocks within a row.
 
+**Hidden fields**
+
+Fields and lists within group list instances can be marked `hideable` in the layout. When a hideable field is empty, it can be collapsed — hidden entirely from the editor to reduce clutter. Hiding is per-instance: the same field can be hidden in one entry and visible in another.
+
+Hidden fields simply disappear from the instance — no chips, no placeholder, no affordance. Hiding never conceals data: if content is added to a hidden field (e.g. via AI tailoring), the field auto-reveals. Non-hideable fields and fields with non-empty content are always visible.
+
+Hiding and revealing are controlled through the Layout Editor. The template author also controls which hideable fields start collapsed via the template's sample content.
+
 ## Layout Mode
 
 > Primarily for template creators. Most users won't need this.
@@ -65,6 +73,7 @@ In this mode you can:
 - **Add decorative Texts** between fields (e.g. " – " between Start Date and End Date)
 - **Style fields** — font (sans/serif, lg/md/sm) and background colour (grey/yellow/none)
 - **Style lists** — display style (plain or bulleted) and item font
+- **Toggle hideable** on fields and lists within group lists, and hide/show individual instances (hide only available when the field is empty)
 
 **Layout rules:** Every line must be fully covered by blocks — no empty horizontal space. If multiple blocks share a line, one is marked as **fill** (stretches to fill remaining space) and the rest **hug** their content. This ensures clicking anywhere on the canvas lands your cursor in a field.
 
@@ -84,4 +93,4 @@ The editor also supports logic flow tags: loop tags and conditional display tags
 
 AI Tailoring is per-application and can be removed without affecting the core user flow.
 
-The user pastes in a job description. The AI selects the most relevant previous application, clones it, and tailors the clone to match the job description.
+The user pastes in a job description. The AI selects the most relevant previous application, clones it, and tailors the clone to match the job description. After AI edits, the hidden fields invariant guard runs on every group list instance — if the AI populated a previously hidden field, it auto-reveals.

@@ -1,12 +1,38 @@
 import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
-import { cn } from "@/lib/utils";
+import type { ListItemStyle } from "@pepper-apply/shared";
+
+function normalizeListItemStyle(style: unknown): ListItemStyle {
+  if (style === "plain" || style === "bullet" || style === "numbered") {
+    return style;
+  }
+
+  return "plain";
+}
+
+function resolveNumberedRunIndex(
+  parentNode: NodeViewProps["node"],
+  itemIndex: number,
+): number {
+  let count = 1;
+
+  for (let index = itemIndex - 1; index >= 0; index -= 1) {
+    const siblingStyle = normalizeListItemStyle(parentNode.child(index).attrs.style);
+    if (siblingStyle !== "numbered") {
+      break;
+    }
+
+    count += 1;
+  }
+
+  return count;
+}
 
 export function ListItemView({ editor, getPos, node }: NodeViewProps) {
   const pos = getPos();
 
   let isInline = false;
-  let isBulleted = false;
+  let marker: string | null = null;
   let showPlaceholder = false;
   let placeholderText = "";
 
@@ -15,8 +41,7 @@ export function ListItemView({ editor, getPos, node }: NodeViewProps) {
     const parentNode = $pos.parent;
 
     if (parentNode.type.name === "list") {
-      isInline = parentNode.attrs.inline === true;
-      isBulleted = !isInline && parentNode.attrs.display === "bulleted";
+      isInline = parentNode.attrs.listKind === "inlineCompat";
 
       const parentPlaceholder = parentNode.attrs.placeholder;
       placeholderText =
@@ -25,7 +50,8 @@ export function ListItemView({ editor, getPos, node }: NodeViewProps) {
           : String(parentPlaceholder ?? "");
 
       const isSingleItemList = parentNode.childCount === 1;
-      const isFirstItem = $pos.index() === 0;
+      const itemIndex = $pos.index();
+      const isFirstItem = itemIndex === 0;
       const isItemEmpty = node.textContent.length === 0;
 
       showPlaceholder =
@@ -33,23 +59,28 @@ export function ListItemView({ editor, getPos, node }: NodeViewProps) {
         isSingleItemList &&
         isFirstItem &&
         isItemEmpty;
+
+      if (!isInline) {
+        const style = normalizeListItemStyle(node.attrs.style);
+        if (style === "bullet") {
+          marker = "•";
+        } else if (style === "numbered") {
+          const number = resolveNumberedRunIndex(parentNode, itemIndex);
+          marker = `${number}.`;
+        }
+      }
     }
   }
 
   return (
-    <NodeViewWrapper
-      className={cn(
-        "px-1.5",
-        isInline ? "flex items-baseline" : "flex items-baseline",
-      )}
-    >
-      {isBulleted && (
+    <NodeViewWrapper className="px-1.5 flex items-baseline">
+      {marker && (
         <span
           contentEditable={false}
           className="select-none text-muted-foreground text-sm ml-1 mr-2 mt-px shrink-0 leading-none"
           aria-hidden
         >
-          •
+          {marker}
         </span>
       )}
       <div

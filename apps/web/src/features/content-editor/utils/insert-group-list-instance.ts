@@ -4,11 +4,17 @@ import type { Node as PMNode } from "@tiptap/pm/model";
 import { Selection } from "@tiptap/pm/state";
 import { buildEmptyGroupListInstanceJSON } from "./build-empty-structure";
 import { findGroupListDefById } from "./schema-helpers";
+import {
+  applyStoredMarksFromDefaultFormat,
+  resolveNearestDefaultFormatFromPos,
+} from "../extensions/utils/default-format-marks";
 
 type DocumentMeta = {
   templateSpec: TemplateSpec;
   groupListLayouts: Record<string, LayoutNode[]>;
 };
+
+const EDITABLE_NODE_NAMES = new Set(["field", "listItem"]);
 
 function readDocumentMeta(editor: Editor): DocumentMeta | null {
   const storage = editor.storage as unknown as Record<string, unknown>;
@@ -45,6 +51,29 @@ function buildGroupListInstanceNode(
   }
 }
 
+function findFirstEditableSelectionPos(
+  instanceNode: PMNode,
+  instanceStartPos: number,
+): number | null {
+  const contentStartPos = instanceStartPos + 1;
+  let selectionPos: number | null = null;
+
+  instanceNode.descendants((node, nodePos) => {
+    if (selectionPos != null) {
+      return false;
+    }
+
+    if (EDITABLE_NODE_NAMES.has(node.type.name)) {
+      selectionPos = contentStartPos + nodePos + 2;
+      return false;
+    }
+
+    return undefined;
+  });
+
+  return selectionPos;
+}
+
 export function insertGroupListInstanceAt(
   editor: Editor,
   groupListId: string,
@@ -57,11 +86,18 @@ export function insertGroupListInstanceAt(
   const safeInsertPos = Math.max(0, Math.min(insertPos, state.doc.content.size));
   const tr = state.tr.insert(safeInsertPos, instanceNode);
 
+  const firstEditablePos = findFirstEditableSelectionPos(instanceNode, safeInsertPos);
   const selectionPos = Math.max(
     1,
-    Math.min(safeInsertPos + 1, tr.doc.content.size),
+    Math.min(firstEditablePos ?? safeInsertPos + 1, tr.doc.content.size),
   );
-  tr.setSelection(Selection.near(tr.doc.resolve(selectionPos), 1)).scrollIntoView();
+  tr.setSelection(Selection.near(tr.doc.resolve(selectionPos), 1));
+
+  const resolvedSelection = tr.doc.resolve(selectionPos);
+  const defaultFormat = resolveNearestDefaultFormatFromPos(resolvedSelection);
+  applyStoredMarksFromDefaultFormat(tr, state.schema, defaultFormat);
+
+  tr.scrollIntoView();
 
   editor.view.dispatch(tr);
   editor.view.focus();

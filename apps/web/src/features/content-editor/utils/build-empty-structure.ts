@@ -3,7 +3,9 @@ import type {
   LayoutNode,
   Field,
   List,
+  InlineList,
   GroupListDef,
+  ListItemStyle,
 } from "@pepper-apply/shared";
 import type { Node as PMNode } from "@tiptap/pm/model";
 
@@ -15,6 +17,10 @@ export type JSONContent = {
   marks?: { type: string; attrs?: Record<string, unknown> }[];
 };
 
+type ListKind = "block" | "inlineCompat";
+
+type ListLikeBlock = List | InlineList;
+
 export function buildEmptyParagraphJSON(): JSONContent {
   return { type: "paragraph" };
 }
@@ -23,15 +29,25 @@ export function buildEmptyFieldParagraphJSON(): JSONContent {
   return buildEmptyParagraphJSON();
 }
 
-export function buildEmptyListItemJSON(): JSONContent {
+export function buildEmptyListItemJSON(style: ListItemStyle = "plain"): JSONContent {
   return {
     type: "listItem",
+    attrs: { style },
     content: [buildEmptyParagraphJSON()],
   };
 }
 
-export function buildEmptyListItemFromNodeJSON(_node: PMNode): JSONContent {
-  void _node;
+export function buildEmptyListItemFromNodeJSON(node: PMNode): JSONContent {
+  if (node.type.name === "listItem") {
+    return buildEmptyListItemJSON(normalizeListItemStyle(node.attrs.style, "plain"));
+  }
+
+  if (node.type.name === "list") {
+    return buildEmptyListItemJSON(
+      normalizeListItemStyle(node.attrs.defaultItemStyle, "plain"),
+    );
+  }
+
   return buildEmptyListItemJSON();
 }
 
@@ -45,9 +61,10 @@ export function buildEmptyFieldFromNodeJSON(node: PMNode): JSONContent {
 
 export function buildEmptyListFromNodeJSON(node: PMNode): JSONContent {
   const json = node.toJSON() as JSONContent;
+  const style = normalizeListItemStyle(node.attrs.defaultItemStyle, "plain");
   return {
     ...json,
-    content: [buildEmptyListItemJSON()],
+    content: [buildEmptyListItemJSON(style)],
   };
 }
 
@@ -93,16 +110,26 @@ function buildEmptyLayoutNodes(
           if (block.type === "decorator") {
             return { type: "decorator", attrs: { text: block.text } };
           }
+
           if (block.type === "list") {
-            return buildEmptyListJSON(block, true);
+            return buildEmptyListJSON(block, "block");
           }
+
+          if (block.type === "inlinelist") {
+            return buildEmptyListJSON(block, "inlineCompat");
+          }
+
           return buildEmptyFieldJSON(block);
         }),
       };
     }
 
     if (node.type === "list") {
-      return buildEmptyListJSON(node, false);
+      return buildEmptyListJSON(node, "block");
+    }
+
+    if (node.type === "inlinelist") {
+      return buildEmptyListJSON(node, "inlineCompat");
     }
 
     const groupListDef = groupListDefs.find((group) => group.id === node.groupListId);
@@ -124,31 +151,56 @@ function buildEmptyFieldJSON(block: Field): JSONContent {
     attrs: {
       fieldId: block.fieldId,
       sizing: block.sizing,
-      font: block.style.font,
-      background: block.style.background,
-      bold: block.outputStyle.bold,
-      italic: block.outputStyle.italic,
-      underline: block.outputStyle.underline,
-      placeholder: block.placeholder,
+      font: block.font ?? "sans",
+      size: block.size ?? "normal",
+      background: block.background ?? "none",
+      defaultFormat: block.defaultFormat ?? {},
+      hideable: block.hideable ?? false,
+      placeholder: block.placeholder ?? "",
     },
     content: [buildEmptyParagraphJSON()],
   };
 }
 
-function buildEmptyListJSON(block: List, inline: boolean): JSONContent {
+function buildEmptyListJSON(block: ListLikeBlock, listKind: ListKind): JSONContent {
+  const defaultItemStyle = resolveDefaultItemStyle(block, listKind);
+
   return {
     type: "list",
     attrs: {
       listId: block.listId,
-      inline,
+      listKind,
       sizing: block.sizing,
-      display: block.display,
-      placeholder: block.placeholder,
-      font: block.itemStyle.font,
-      bold: block.itemStyle.outputStyle.bold,
-      italic: block.itemStyle.outputStyle.italic,
-      underline: block.itemStyle.outputStyle.underline,
+      font: block.font ?? "sans",
+      size: block.size ?? "normal",
+      background: block.background ?? "none",
+      defaultFormat: block.defaultFormat ?? {},
+      defaultItemStyle,
+      hideable: block.hideable ?? false,
+      placeholder: block.placeholder ?? "",
     },
-    content: [buildEmptyListItemJSON()],
+    content: [buildEmptyListItemJSON(defaultItemStyle)],
   };
+}
+
+function resolveDefaultItemStyle(
+  block: ListLikeBlock,
+  listKind: ListKind,
+): ListItemStyle {
+  if (listKind === "inlineCompat") {
+    return "plain";
+  }
+
+  return block.type === "list" ? block.defaultItemStyle ?? "plain" : "plain";
+}
+
+function normalizeListItemStyle(
+  style: unknown,
+  fallback: ListItemStyle,
+): ListItemStyle {
+  if (style === "plain" || style === "bullet" || style === "numbered") {
+    return style;
+  }
+
+  return fallback;
 }
