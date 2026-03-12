@@ -2,7 +2,7 @@ import { Plus } from "lucide-react";
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { Button } from "@/components/ui/button";
-import { insertGroupListInstanceAt } from "../../utils/insert-group-list-instance";
+import { insertGroupListInstanceAt } from "../../utils/commands/insert-group-list-instance";
 
 function findParentGroupListId(instancePos: number, nodeViewProps: NodeViewProps) {
   const { editor } = nodeViewProps;

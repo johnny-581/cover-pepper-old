@@ -9,7 +9,7 @@ export const templateLayout: TemplateLayout = [
         fieldId: "name",
         sizing: "hug",
         placeholder: "Full Name",
-        size: "small",
+        size: "heading",
         defaultFormat: { bold: true },
       },
     ],

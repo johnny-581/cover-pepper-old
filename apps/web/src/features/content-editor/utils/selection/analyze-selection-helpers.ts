@@ -1,4 +1,4 @@
-import type { JSONContent } from "./build-empty-structure";
+import type { JSONContent } from "../document/build-empty-structure";
 
 export type SelectionAnchor = {
   path: number[];

@@ -3,42 +3,23 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 import type { ListItemStyle } from "@pepper-apply/shared";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { splitListItem } from "@tiptap/pm/schema-list";
-import { Selection, type EditorState, type Transaction } from "@tiptap/pm/state";
+import { type EditorState, type Transaction } from "@tiptap/pm/state";
 import { ListItemView } from "../components/node-views/ListItemView";
-import { CARET_JUMP_UNDO_META } from "./caret-jump-undo";
 import { maybeDeleteEmptyGroupListInstanceAndJump } from "./utils/group-list-instance-backspace";
 import {
   applyStoredMarksFromDefaultFormat,
 } from "./utils/default-format-marks";
 import {
-  findNextEditableTarget,
-  type EditableBlock,
-} from "./utils/previous-editable-block";
-
-type ListItemContext = {
-  listItemDepth: number;
-  listDepth: number;
-};
-
-function getListItemContext(selectionFrom: {
-  depth: number;
-  node: (depth: number) => { type: { name: string } };
-}): ListItemContext | null {
-  for (let depth = selectionFrom.depth; depth > 0; depth -= 1) {
-    if (selectionFrom.node(depth).type.name !== "listItem") {
-      continue;
-    }
-
-    const listDepth = depth - 1;
-    if (listDepth < 0 || selectionFrom.node(listDepth).type.name !== "list") {
-      return null;
-    }
-
-    return { listItemDepth: depth, listDepth };
-  }
-
-  return null;
-}
+  deleteCurrentItemAndJump,
+  deleteItemAndSelectNeighbor,
+  dispatchSelectionJumpWithUndoMeta,
+  getListItemContext,
+  isCaretAtStartOfItem,
+  isItemEmpty,
+  moveSelectionBeforeContainer,
+  resolveNextTargetForEmptyItem,
+  resolveSelectionBeforeContainer,
+} from "./utils/list-item-shared";
 
 function normalizeListItemStyle(
   style: unknown,
@@ -98,93 +79,6 @@ function splitItemWithCurrentBehavior(
   return splitListItem(listItemType)(state, dispatch, view);
 }
 
-function isListItemEmpty(listItemNode: { textContent: string }): boolean {
-  return listItemNode.textContent.trim().length === 0;
-}
-
-function isCaretAtStartOfItem(selectionFrom: { parentOffset: number }): boolean {
-  return selectionFrom.parentOffset === 0;
-}
-
-function moveSelectionBeforeList(
-  state: EditorState,
-  dispatch: (tr: Transaction) => void,
-  listStartPos: number,
-  fromPos: number,
-): boolean {
-  const selection = resolveSelectionBeforeList(state, listStartPos);
-  if (!selection) {
-    return false;
-  }
-
-  dispatch(
-    state.tr
-      .setSelection(selection)
-      .setMeta(CARET_JUMP_UNDO_META, { from: fromPos, to: selection.from }),
-  );
-  return true;
-}
-
-function resolveSelectionBeforeList(
-  state: EditorState,
-  listStartPos: number,
-): Selection | null {
-  const selection = Selection.near(state.doc.resolve(listStartPos), -1);
-  if (selection.from >= listStartPos) {
-    return null;
-  }
-
-  return selection;
-}
-
-function resolveNextTargetForEmptyItem(
-  state: EditorState,
-  listNode: PMNode,
-  listItemNode: PMNode,
-  listItemIndex: number,
-  listItemPos: number,
-): EditableBlock | null {
-  const hasNextSibling = listItemIndex < listNode.childCount - 1;
-  if (hasNextSibling) {
-    const nextSiblingPos = listItemPos + listItemNode.nodeSize;
-    const nextSiblingNode = listNode.child(listItemIndex + 1);
-    return { pos: nextSiblingPos, node: nextSiblingNode };
-  }
-
-  const listItemEndPos = listItemPos + listItemNode.nodeSize - 1;
-  return findNextEditableTarget(state.doc, listItemEndPos);
-}
-
-function dispatchSelectionJumpWithUndoMeta(
-  state: EditorState,
-  dispatch: (tr: Transaction) => void,
-  toPos: number,
-): void {
-  dispatch(
-    state.tr
-      .setSelection(Selection.near(state.doc.resolve(toPos), -1))
-      .setMeta(CARET_JUMP_UNDO_META, {
-        from: state.selection.from,
-        to: toPos,
-      })
-      .scrollIntoView(),
-  );
-}
-
-function deleteCurrentItemAndJump(
-  state: EditorState,
-  dispatch: (tr: Transaction) => void,
-  listItemPos: number,
-  listItemNodeSize: number,
-  targetEndPos: number,
-): void {
-  const tr = state.tr.delete(listItemPos, listItemPos + listItemNodeSize);
-  const mappedTargetPos = tr.mapping.map(targetEndPos, -1);
-  const selectionPos = Math.max(1, Math.min(mappedTargetPos, tr.doc.content.size));
-  tr.setSelection(Selection.near(tr.doc.resolve(selectionPos), -1));
-  dispatch(tr.scrollIntoView());
-}
-
 function createListStyleInputRule(
   find: RegExp,
   style: ListItemStyle,
@@ -193,7 +87,7 @@ function createListStyleInputRule(
     find,
     handler: ({ state, range, commands }) => {
       const $ruleStart = state.doc.resolve(range.from);
-      const context = getListItemContext($ruleStart);
+      const context = getListItemContext($ruleStart, "listItem", "list");
       if (!context) {
         return null;
       }
@@ -203,8 +97,8 @@ function createListStyleInputRule(
         return null;
       }
 
-      const listItemPos = $ruleStart.before(context.listItemDepth);
-      const listItemNode = $ruleStart.node(context.listItemDepth);
+      const listItemPos = $ruleStart.before(context.itemDepth);
+      const listItemNode = $ruleStart.node(context.itemDepth);
 
       const applied = commands.command(({ dispatch }) => {
         const tr = state.tr
@@ -269,7 +163,7 @@ export const ListItemNode = Node.create({
       Enter: ({ editor }) => {
         const { state } = editor;
         const { $from, empty } = state.selection;
-        const context = getListItemContext($from);
+        const context = getListItemContext($from, "listItem", "list");
 
         if (!context) {
           return splitItemWithCurrentBehavior(
@@ -279,11 +173,11 @@ export const ListItemNode = Node.create({
           );
         }
 
-        const { listItemDepth, listDepth } = context;
+        const { itemDepth: listItemDepth, listDepth } = context;
         const listNode = $from.node(listDepth);
         const listItemNode = $from.node(listItemDepth);
 
-        if (!empty || !isListItemEmpty(listItemNode)) {
+        if (!empty || !isItemEmpty(listItemNode)) {
           const nextStyle = resolveNextListItemStyle(listNode, listItemNode);
           return splitItemWithStyleAndSeed(
             state,
@@ -331,15 +225,15 @@ export const ListItemNode = Node.create({
         const { $from, empty } = state.selection;
 
         if (!empty) return false;
-        const context = getListItemContext($from);
+        const context = getListItemContext($from, "listItem", "list");
         if (!context) return false;
 
-        const { listItemDepth, listDepth } = context;
+        const { itemDepth: listItemDepth, listDepth } = context;
         const listNode = $from.node(listDepth);
         const listItemNode = $from.node(listItemDepth);
         const listItemIndex = $from.index(listDepth);
         const isFirstItem = listItemIndex === 0;
-        const itemIsEmpty = isListItemEmpty(listItemNode);
+        const itemIsEmpty = isItemEmpty(listItemNode);
         const caretAtStart = isCaretAtStartOfItem($from);
 
         if (!caretAtStart) return false;
@@ -364,7 +258,7 @@ export const ListItemNode = Node.create({
 
         if (isFirstItem && listNode.childCount === 1) {
           const listStartPos = $from.before(listDepth);
-          const selectionBeforeList = resolveSelectionBeforeList(
+          const selectionBeforeList = resolveSelectionBeforeContainer(
             state,
             listStartPos,
           );
@@ -382,7 +276,7 @@ export const ListItemNode = Node.create({
             }
           }
 
-          moveSelectionBeforeList(
+          moveSelectionBeforeContainer(
             state,
             editor.view.dispatch,
             listStartPos,
@@ -397,29 +291,14 @@ export const ListItemNode = Node.create({
         }
 
         const listItemPos = $from.before(listItemDepth);
-        const deleteFrom = listItemPos;
-        const deleteTo = listItemPos + listItemNode.nodeSize;
-        const hasPreviousSibling = listItemIndex > 0;
-
-        const tr = state.tr.delete(deleteFrom, deleteTo);
-        if (hasPreviousSibling) {
-          const previousNode = listNode.child(listItemIndex - 1);
-          const previousNodePos = listItemPos - previousNode.nodeSize;
-          const previousNodeEnd = previousNodePos + previousNode.nodeSize - 1;
-          const selectionPos = Math.max(
-            0,
-            Math.min(previousNodeEnd, tr.doc.content.size),
-          );
-          tr.setSelection(Selection.near(tr.doc.resolve(selectionPos), -1));
-        } else {
-          const selectionPos = Math.max(
-            0,
-            Math.min(listItemPos + 1, tr.doc.content.size),
-          );
-          tr.setSelection(Selection.near(tr.doc.resolve(selectionPos), 1));
-        }
-
-        editor.view.dispatch(tr);
+        deleteItemAndSelectNeighbor(
+          state,
+          editor.view.dispatch,
+          listNode,
+          listItemIndex,
+          listItemPos,
+          listItemNode.nodeSize,
+        );
         return true;
       },
     };

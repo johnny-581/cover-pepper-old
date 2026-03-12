@@ -1,39 +1,21 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { splitListItem } from "@tiptap/pm/schema-list";
-import { Selection, type EditorState, type Transaction } from "@tiptap/pm/state";
+import { type EditorState, type Transaction } from "@tiptap/pm/state";
 import { InlineListItemView } from "../components/node-views/InlineListItemView";
-import { CARET_JUMP_UNDO_META } from "./caret-jump-undo";
 import { maybeDeleteEmptyGroupListInstanceAndJump } from "./utils/group-list-instance-backspace";
 import { applyStoredMarksFromDefaultFormat } from "./utils/default-format-marks";
-
-type InlineListItemContext = {
-  inlineListItemDepth: number;
-  inlineListDepth: number;
-};
-
-function getInlineListItemContext(selectionFrom: {
-  depth: number;
-  node: (depth: number) => { type: { name: string } };
-}): InlineListItemContext | null {
-  for (let depth = selectionFrom.depth; depth > 0; depth -= 1) {
-    if (selectionFrom.node(depth).type.name !== "inlineListItem") {
-      continue;
-    }
-
-    const inlineListDepth = depth - 1;
-    if (
-      inlineListDepth < 0 ||
-      selectionFrom.node(inlineListDepth).type.name !== "inlineList"
-    ) {
-      return null;
-    }
-
-    return { inlineListItemDepth: depth, inlineListDepth };
-  }
-
-  return null;
-}
+import {
+  deleteCurrentItemAndJump,
+  deleteItemAndSelectNeighbor,
+  dispatchSelectionJumpWithUndoMeta,
+  getListItemContext,
+  isCaretAtStartOfItem,
+  isItemEmpty,
+  moveSelectionBeforeContainer,
+  resolveNextTargetForEmptyItem,
+  resolveSelectionBeforeContainer,
+} from "./utils/list-item-shared";
 
 function splitItemWithSeed(
   state: EditorState,
@@ -52,45 +34,6 @@ function splitItemWithSeed(
     },
     view,
   );
-}
-
-function isItemEmpty(node: { textContent: string }): boolean {
-  return node.textContent.trim().length === 0;
-}
-
-function isCaretAtStartOfItem(selectionFrom: { parentOffset: number }): boolean {
-  return selectionFrom.parentOffset === 0;
-}
-
-function resolveSelectionBeforeInlineList(
-  state: EditorState,
-  inlineListStartPos: number,
-): Selection | null {
-  const selection = Selection.near(state.doc.resolve(inlineListStartPos), -1);
-  if (selection.from >= inlineListStartPos) {
-    return null;
-  }
-
-  return selection;
-}
-
-function moveSelectionBeforeInlineList(
-  state: EditorState,
-  dispatch: (tr: Transaction) => void,
-  inlineListStartPos: number,
-  fromPos: number,
-): boolean {
-  const selection = resolveSelectionBeforeInlineList(state, inlineListStartPos);
-  if (!selection) {
-    return false;
-  }
-
-  dispatch(
-    state.tr
-      .setSelection(selection)
-      .setMeta(CARET_JUMP_UNDO_META, { from: fromPos, to: selection.from }),
-  );
-  return true;
 }
 
 export const InlineListItemNode = Node.create({
@@ -120,29 +63,66 @@ export const InlineListItemNode = Node.create({
     return {
       Enter: ({ editor }) => {
         const { state } = editor;
-        const { $from } = state.selection;
-        const context = getInlineListItemContext($from);
+        const { $from, empty } = state.selection;
+        const context = getListItemContext($from, "inlineListItem", "inlineList");
         if (!context) return false;
 
-        const { inlineListDepth } = context;
+        const { itemDepth: inlineListItemDepth, listDepth: inlineListDepth } =
+          context;
         const inlineListNode = $from.node(inlineListDepth);
+        const inlineListItemNode = $from.node(inlineListItemDepth);
 
-        return splitItemWithSeed(
+        if (!empty || !isItemEmpty(inlineListItemNode)) {
+          return splitItemWithSeed(
+            state,
+            editor.view.dispatch,
+            editor.view,
+            inlineListNode.attrs.defaultFormat,
+          );
+        }
+
+        const inlineListItemIndex = $from.index(inlineListDepth);
+        const inlineListItemPos = $from.before(inlineListItemDepth);
+        const nextTarget = resolveNextTargetForEmptyItem(
+          state,
+          inlineListNode,
+          inlineListItemNode,
+          inlineListItemIndex,
+          inlineListItemPos,
+        );
+        if (!nextTarget) {
+          return true;
+        }
+
+        const targetEndPos = nextTarget.pos + nextTarget.node.nodeSize - 1;
+        if (inlineListNode.childCount === 1) {
+          dispatchSelectionJumpWithUndoMeta(
+            state,
+            editor.view.dispatch,
+            targetEndPos,
+          );
+          return true;
+        }
+
+        deleteCurrentItemAndJump(
           state,
           editor.view.dispatch,
-          editor.view,
-          inlineListNode.attrs.defaultFormat,
+          inlineListItemPos,
+          inlineListItemNode.nodeSize,
+          targetEndPos,
         );
+        return true;
       },
       Backspace: ({ editor }) => {
         const { state } = editor;
         const { $from, empty } = state.selection;
 
         if (!empty) return false;
-        const context = getInlineListItemContext($from);
+        const context = getListItemContext($from, "inlineListItem", "inlineList");
         if (!context) return false;
 
-        const { inlineListItemDepth, inlineListDepth } = context;
+        const { itemDepth: inlineListItemDepth, listDepth: inlineListDepth } =
+          context;
         const inlineListNode = $from.node(inlineListDepth);
         const inlineListItemNode = $from.node(inlineListItemDepth);
         const inlineListItemIndex = $from.index(inlineListDepth);
@@ -161,7 +141,7 @@ export const InlineListItemNode = Node.create({
 
         if (isFirstItem && inlineListNode.childCount === 1) {
           const inlineListStartPos = $from.before(inlineListDepth);
-          const selectionBeforeInlineList = resolveSelectionBeforeInlineList(
+          const selectionBeforeInlineList = resolveSelectionBeforeContainer(
             state,
             inlineListStartPos,
           );
@@ -179,7 +159,7 @@ export const InlineListItemNode = Node.create({
             }
           }
 
-          moveSelectionBeforeInlineList(
+          moveSelectionBeforeContainer(
             state,
             editor.view.dispatch,
             inlineListStartPos,
@@ -194,29 +174,14 @@ export const InlineListItemNode = Node.create({
         }
 
         const inlineListItemPos = $from.before(inlineListItemDepth);
-        const deleteFrom = inlineListItemPos;
-        const deleteTo = inlineListItemPos + inlineListItemNode.nodeSize;
-        const hasPreviousSibling = inlineListItemIndex > 0;
-
-        const tr = state.tr.delete(deleteFrom, deleteTo);
-        if (hasPreviousSibling) {
-          const previousNode = inlineListNode.child(inlineListItemIndex - 1);
-          const previousNodePos = inlineListItemPos - previousNode.nodeSize;
-          const previousNodeEnd = previousNodePos + previousNode.nodeSize - 1;
-          const selectionPos = Math.max(
-            0,
-            Math.min(previousNodeEnd, tr.doc.content.size),
-          );
-          tr.setSelection(Selection.near(tr.doc.resolve(selectionPos), -1));
-        } else {
-          const selectionPos = Math.max(
-            0,
-            Math.min(inlineListItemPos + 1, tr.doc.content.size),
-          );
-          tr.setSelection(Selection.near(tr.doc.resolve(selectionPos), 1));
-        }
-
-        editor.view.dispatch(tr);
+        deleteItemAndSelectNeighbor(
+          state,
+          editor.view.dispatch,
+          inlineListNode,
+          inlineListItemIndex,
+          inlineListItemPos,
+          inlineListItemNode.nodeSize,
+        );
         return true;
       },
     };

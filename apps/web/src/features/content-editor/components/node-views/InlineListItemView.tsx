@@ -35,9 +35,19 @@ export function InlineListItemView({ editor, getPos, node }: NodeViewProps) {
     <NodeViewWrapper className="inline-list-item relative flex items-center min-w-0">
       <div
         className="relative min-w-0 px-1.5"
-        data-placeholder={showPlaceholder ? placeholderText : undefined}
       >
-        <NodeViewContent className="[&_p]:m-0 leading-[inherit] min-w-px" />
+        {/* Reserve width so empty placeholders center the same way as fields. */}
+        {showPlaceholder && (
+          <span className="invisible whitespace-nowrap h-0 block overflow-hidden">
+            {placeholderText}
+          </span>
+        )}
+        <div
+          className="relative min-w-0"
+          data-placeholder={showPlaceholder ? placeholderText : undefined}
+        >
+          <NodeViewContent className="[&_p]:m-0 leading-[inherit] min-w-px" />
+        </div>
       </div>
     </NodeViewWrapper>
   );

@@ -4,7 +4,7 @@ import type { Selection } from "@tiptap/pm/state";
 import {
   buildEmptyFieldFromNodeJSON,
   type JSONContent,
-} from "./build-empty-structure";
+} from "../document/build-empty-structure";
 import {
   computeDeleteWindow,
   findFirstEditablePath,
@@ -21,10 +21,10 @@ import {
   trimParagraphJSON,
   unchanged,
   type RewriteResult,
-} from "./node-json";
-import { rewriteGroupListNode } from "./rewrite-group-list";
-import { rewriteListNode } from "./rewrite-list";
-import { rewriteInlineListNode } from "./rewrite-inline-list";
+} from "../document/node-json";
+import { rewriteGroupListNode } from "../rewrite/rewrite-group-list";
+import { rewriteListNode } from "../rewrite/rewrite-list";
+import { rewriteInlineListNode } from "../rewrite/rewrite-inline-list";
 
 export type SelectionAnalysis = {
   doc: JSONContent;

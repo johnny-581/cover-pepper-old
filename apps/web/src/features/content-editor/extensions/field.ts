@@ -75,7 +75,7 @@ function handleDeleteFromEmptyField(
   return true;
 }
 
-function handleEnterFromEmptyField(editor: Editor): boolean {
+function handleEnterFromField(editor: Editor): boolean {
   const { state } = editor;
   const { empty, $from } = state.selection;
 
@@ -83,7 +83,6 @@ function handleEnterFromEmptyField(editor: Editor): boolean {
 
   const fieldContext = getFieldContext($from);
   if (!fieldContext) return false;
-  if (!isFieldEmpty(fieldContext.fieldNode)) return false;
 
   const fieldEndPos = fieldContext.fieldStartPos + fieldContext.fieldNode.nodeSize - 1;
   const nextTarget = findNextEditableTarget(state.doc, fieldEndPos);
@@ -147,7 +146,7 @@ export const FieldNode = Node.create({
 
   addKeyboardShortcuts() {
     return {
-      Enter: ({ editor }) => handleEnterFromEmptyField(editor),
+      Enter: ({ editor }) => handleEnterFromField(editor),
       Backspace: ({ editor }) => handleDeleteFromEmptyField(editor, true),
       Delete: ({ editor }) => handleDeleteFromEmptyField(editor, false),
     };

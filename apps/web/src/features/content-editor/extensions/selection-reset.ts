@@ -4,11 +4,11 @@ import { Plugin, TextSelection } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 import {
   analyzeSelection,
-} from "../utils/analyze-selection";
+} from "../utils/selection/analyze-selection";
 import {
   clampSelectionPos,
   type SelectionAnchor,
-} from "../utils/analyze-selection-helpers";
+} from "../utils/selection/analyze-selection-helpers";
 
 type DocumentMeta = {
   templateSpec: import("@pepper-apply/shared").TemplateSpec;

@@ -3,19 +3,19 @@ import type { Node as PMNode } from "@tiptap/pm/model";
 import {
   buildEmptyGroupListInstanceJSON,
   type JSONContent,
-} from "./build-empty-structure";
+} from "../document/build-empty-structure";
 import {
   findFirstEditablePath,
   prependPath,
   rangesOverlap,
   type SelectionAnchor,
-} from "./analyze-selection-helpers";
+} from "../selection/analyze-selection-helpers";
 import {
   copyNodeJSON,
   nodeWithContent,
   type RewriteResult,
-} from "./node-json";
-import { findGroupListDefById, findGroupListLayout } from "./schema-helpers";
+} from "../document/node-json";
+import { findGroupListDefById, findGroupListLayout } from "../schema/schema-helpers";
 
 type RewriteLayoutNode = (
   node: PMNode,

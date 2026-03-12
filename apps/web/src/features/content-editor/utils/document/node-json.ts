@@ -1,5 +1,5 @@
 import type { Fragment, Node as PMNode } from "@tiptap/pm/model";
-import type { SelectionAnchor } from "./analyze-selection-helpers";
+import type { SelectionAnchor } from "../selection/analyze-selection-helpers";
 import type { JSONContent } from "./build-empty-structure";
 
 export type RewriteResult = {

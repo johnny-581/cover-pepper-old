@@ -1,9 +1,9 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import { useEditorStore } from "./store";
 import { createDocumentExtensions } from "./extensions";
-import { buildDocument } from "./utils/build-document";
-import { extractContent } from "./utils/extract-content";
-import { buildGroupListLayoutMap } from "./utils/schema-helpers";
+import { buildDocument } from "./utils/document/build-document";
+import { extractContent } from "./utils/document/extract-content";
+import { buildGroupListLayoutMap } from "./utils/schema/schema-helpers";
 
 export function ContentEditor() {
   const templateSpec = useEditorStore((s) => s.templateSpec);

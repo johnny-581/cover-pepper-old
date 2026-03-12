@@ -2,12 +2,12 @@ import type { LayoutNode, TemplateSpec } from "@pepper-apply/shared";
 import type { Editor } from "@tiptap/core";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { Selection } from "@tiptap/pm/state";
-import { buildEmptyGroupListInstanceJSON } from "./build-empty-structure";
-import { findGroupListDefById } from "./schema-helpers";
+import { buildEmptyGroupListInstanceJSON } from "../document/build-empty-structure";
+import { findGroupListDefById } from "../schema/schema-helpers";
 import {
   applyStoredMarksFromDefaultFormat,
   resolveNearestDefaultFormatFromPos,
-} from "../extensions/utils/default-format-marks";
+} from "../../extensions/utils/default-format-marks";
 
 type DocumentMeta = {
   templateSpec: TemplateSpec;

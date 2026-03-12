@@ -1,8 +1,8 @@
 import type { Node as PMNode } from "@tiptap/pm/model";
 import {
-  buildEmptyInlineListItemFromNodeJSON,
+  buildEmptyListItemFromNodeJSON,
   type JSONContent,
-} from "./build-empty-structure";
+} from "../document/build-empty-structure";
 import {
   clampOffset,
   computeDeleteWindow,
@@ -11,7 +11,7 @@ import {
   prependPath,
   rangesOverlap,
   selectionStartsInText,
-} from "./analyze-selection-helpers";
+} from "../selection/analyze-selection-helpers";
 import {
   buildParagraphFromFragments,
   copyNodeJSON,
@@ -19,32 +19,32 @@ import {
   trimParagraphJSON,
   unchanged,
   type RewriteResult,
-} from "./node-json";
+} from "../document/node-json";
 
-type InlineListItemOverlap = "none" | "full" | "partial";
+type ListItemOverlap = "none" | "full" | "partial";
 
-type InlineListItemSelectionSlice = {
+type ListItemSelectionSlice = {
   node: PMNode;
   index: number;
   start: number;
   end: number;
-  overlap: InlineListItemOverlap;
+  overlap: ListItemOverlap;
 };
 
-type MergedInlineListItemResult = {
+type MergedListItemResult = {
   json: JSONContent;
   joinOffset: number;
 };
 
-export function rewriteInlineListNode(
-  inlineListNode: PMNode,
-  inlineListStart: number,
+export function rewriteListNode(
+  listNode: PMNode,
+  listStart: number,
   selectionFrom: number,
   selectionTo: number,
 ): RewriteResult {
-  const slices = collectInlineListItemSelectionSlices(
-    inlineListNode,
-    inlineListStart,
+  const slices = collectListItemSelectionSlices(
+    listNode,
+    listStart,
     selectionFrom,
     selectionTo,
   );
@@ -53,7 +53,7 @@ export function rewriteInlineListNode(
     (slice) => slice.overlap !== "none",
   );
   if (firstOverlappingIndex < 0) {
-    return unchanged(inlineListNode);
+    return unchanged(listNode);
   }
 
   let lastOverlappingIndex = firstOverlappingIndex;
@@ -89,7 +89,7 @@ export function rewriteInlineListNode(
 
     if (shouldMergeBoundaryItems) {
       if (slice.index === firstOverlappingSlice.index) {
-        const merged = mergeBoundaryInlineListItems(
+        const merged = mergeBoundaryListItems(
           firstOverlappingSlice,
           lastOverlappingSlice,
           selectionFrom,
@@ -113,7 +113,7 @@ export function rewriteInlineListNode(
     }
 
     if (slice.overlap === "partial") {
-      const result = rewriteInlineListItemNode(
+      const result = rewriteListItemNode(
         slice.node,
         slice.start,
         selectionFrom,
@@ -131,33 +131,33 @@ export function rewriteInlineListNode(
   }
 
   if (content.length === 0) {
-    const emptyItem = buildEmptyInlineListItemFromNodeJSON(
-      inlineListNode.firstChild ?? inlineListNode,
-    );
+    // Preserve list item style when recreating the mandatory empty row.
+    const styleSourceNode = listNode.firstChild ?? listNode;
+    const emptyItem = buildEmptyListItemFromNodeJSON(styleSourceNode);
     content.push(emptyItem);
     changed = true;
     anchor ??= prependPath(0, findFirstEditablePath(emptyItem));
   }
 
   return {
-    json: nodeWithContent(inlineListNode, content),
+    json: nodeWithContent(listNode, content),
     changed,
     anchor,
   };
 }
 
-function collectInlineListItemSelectionSlices(
-  inlineListNode: PMNode,
-  inlineListStart: number,
+function collectListItemSelectionSlices(
+  listNode: PMNode,
+  listStart: number,
   selectionFrom: number,
   selectionTo: number,
-): InlineListItemSelectionSlice[] {
-  const slices: InlineListItemSelectionSlice[] = [];
-  const inlineListContentStart = inlineListStart + 1;
+): ListItemSelectionSlice[] {
+  const slices: ListItemSelectionSlice[] = [];
+  const listContentStart = listStart + 1;
   let childIndex = 0;
 
-  inlineListNode.forEach((child, offset) => {
-    const childStart = inlineListContentStart + offset;
+  listNode.forEach((child, offset) => {
+    const childStart = listContentStart + offset;
     const childEnd = childStart + child.nodeSize;
 
     slices.push({
@@ -165,12 +165,7 @@ function collectInlineListItemSelectionSlices(
       index: childIndex,
       start: childStart,
       end: childEnd,
-      overlap: getInlineListItemOverlap(
-        childStart,
-        childEnd,
-        selectionFrom,
-        selectionTo,
-      ),
+      overlap: getListItemOverlap(childStart, childEnd, selectionFrom, selectionTo),
     });
 
     childIndex += 1;
@@ -179,12 +174,12 @@ function collectInlineListItemSelectionSlices(
   return slices;
 }
 
-function getInlineListItemOverlap(
+function getListItemOverlap(
   itemStart: number,
   itemEnd: number,
   selectionFrom: number,
   selectionTo: number,
-): InlineListItemOverlap {
+): ListItemOverlap {
   if (!rangesOverlap(itemStart, itemEnd, selectionFrom, selectionTo)) {
     return "none";
   }
@@ -196,12 +191,12 @@ function getInlineListItemOverlap(
   return "partial";
 }
 
-function mergeBoundaryInlineListItems(
-  firstSlice: InlineListItemSelectionSlice,
-  lastSlice: InlineListItemSelectionSlice,
+function mergeBoundaryListItems(
+  firstSlice: ListItemSelectionSlice,
+  lastSlice: ListItemSelectionSlice,
   selectionFrom: number,
   selectionTo: number,
-): MergedInlineListItemResult {
+): MergedListItemResult {
   const firstParagraph = firstSlice.node.firstChild;
   const lastParagraph = lastSlice.node.firstChild;
   if (!firstParagraph || firstParagraph.type.name !== "paragraph") {
@@ -237,15 +232,15 @@ function mergeBoundaryInlineListItems(
   };
 }
 
-function rewriteInlineListItemNode(
-  inlineListItemNode: PMNode,
+function rewriteListItemNode(
+  listItemNode: PMNode,
   itemStart: number,
   selectionFrom: number,
   selectionTo: number,
 ): RewriteResult {
-  const paragraph = inlineListItemNode.firstChild;
+  const paragraph = listItemNode.firstChild;
   if (!paragraph || paragraph.type.name !== "paragraph") {
-    return unchanged(inlineListItemNode);
+    return unchanged(listItemNode);
   }
 
   const textStart = itemStart + 2;
@@ -257,11 +252,11 @@ function rewriteInlineListItemNode(
   );
 
   if (deleteFrom >= deleteTo) {
-    return unchanged(inlineListItemNode);
+    return unchanged(listItemNode);
   }
 
   return {
-    json: nodeWithContent(inlineListItemNode, [
+    json: nodeWithContent(listItemNode, [
       trimParagraphJSON(paragraph, deleteFrom, deleteTo),
     ]),
     changed: true,

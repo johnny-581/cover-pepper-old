@@ -1,4 +1,4 @@
-# Hidden Fields Plan
+# Hidden Fields Redesign Plan
 
 ## Goal
 
