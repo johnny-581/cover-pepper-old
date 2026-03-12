@@ -7,7 +7,7 @@ export const templateLayout: TemplateLayout = [
       {
         type: "field",
         fieldId: "name",
-        sizing: "fill",
+        sizing: "hug",
         placeholder: "Full Name",
         size: "small",
         defaultFormat: { bold: true },
@@ -20,7 +20,7 @@ export const templateLayout: TemplateLayout = [
       {
         type: "inlinelist",
         listId: "contacts",
-        sizing: "fill",
+        sizing: "hug",
         placeholder: "Add a contact",
         size: "small",
       },

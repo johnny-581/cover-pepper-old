@@ -199,12 +199,13 @@ div[data-type="row"] {
   width: 100%;
 }
 
-/* Field sizing inside rows */
+/* Field sizing inside rows fill */
 .node-field[data-sizing="fill"] {
   flex: 1 1 0%;
   min-width: 0;
 }
 
+/* Field sizing inside rows hug */
 .node-field[data-sizing="hug"] {
   flex-shrink: 0;
 }
@@ -214,6 +215,11 @@ div[data-type="group-list"] {
   display: flex;
   flex-direction: column;
   /* gap: 0.25rem; */
+}
+
+/* Inline list */
+.inline-list > * > [data-node-view-content] > [data-node-view-content-react] {
+  display: inline-flex;
 }
 
 /* div[data-type="group-list-instance"] {
