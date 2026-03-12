@@ -1,9 +1,20 @@
 import { useEditor, EditorContent } from "@tiptap/react";
+import type { LayoutNode } from "@pepper-apply/shared";
 import { useEditorStore } from "./store";
 import { createDocumentExtensions } from "./extensions";
 import { buildDocument } from "./utils/document/build-document";
 import { extractContent } from "./utils/document/extract-content";
 import { buildGroupListLayoutMap } from "./utils/schema/schema-helpers";
+
+function readGroupListLayouts(editor: {
+  storage: unknown;
+}): Record<string, LayoutNode[]> | null {
+  const storage = editor.storage as Record<string, unknown>;
+  const meta = storage.documentMeta as { groupListLayouts?: unknown } | undefined;
+  if (!meta || typeof meta !== "object") return null;
+  if (!meta.groupListLayouts || typeof meta.groupListLayouts !== "object") return null;
+  return meta.groupListLayouts as Record<string, LayoutNode[]>;
+}
 
 export function ContentEditor() {
   const templateSpec = useEditorStore((s) => s.templateSpec);
@@ -22,7 +33,9 @@ export function ContentEditor() {
       };
     },
     onUpdate: ({ editor }) => {
-      const newContent = extractContent(editor.state.doc);
+      const groupListLayouts =
+        readGroupListLayouts(editor) ?? buildGroupListLayoutMap(templateLayout);
+      const newContent = extractContent(editor.state.doc, groupListLayouts);
       setContent(newContent);
     },
     editorProps: {

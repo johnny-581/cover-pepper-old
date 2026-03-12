@@ -196,22 +196,22 @@ div[data-type="row"] {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  /* gap: 0.25rem; */
+  gap: 0.1rem;
   width: 100%;
 }
 
-/* No fill-sized direct child => center row contents */
+/* If no fill-sized direct child, then center the row's contents */
 div[data-type="row"]:not(:has(> [data-sizing="fill"])) {
   justify-content: center;
 }
 
-/* Field sizing inside rows fill */
+/* Field sizing inside rows (fill) */
 .node-field[data-sizing="fill"] {
   flex: 1 1 0%;
   min-width: 0;
 }
 
-/* Field sizing inside rows hug */
+/* Field sizing inside rows (hug) */
 .node-field[data-sizing="hug"] {
   flex-shrink: 0;
 }
@@ -220,7 +220,8 @@ div[data-type="row"]:not(:has(> [data-sizing="fill"])) {
 div[data-type="group-list"] {
   display: flex;
   flex-direction: column;
-  /* gap: 0.25rem; */
+  gap: 0.5rem;
+  padding: 0.5rem 0;
 }
 
 /* Inline list */

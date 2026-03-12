@@ -4,12 +4,13 @@ import { GroupListInstanceView } from "../components/node-views/GroupListInstanc
 
 export const GroupListInstanceNode = Node.create({
   name: "groupListInstance",
-  content: "(layoutNode)+",
+  content: "(layoutNode)*",
   isolating: true,
 
   addAttributes() {
     return {
       instanceKey: { default: "" },
+      _hidden: { default: undefined, rendered: false },
     };
   },
 

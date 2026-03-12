@@ -2,9 +2,11 @@ import type { Node as PMNode } from "@tiptap/pm/model";
 import type {
   FileContent,
   GroupListInstance,
+  LayoutNode,
   ListItem,
   ListItemStyle,
 } from "@pepper-apply/shared";
+import { enforceHidden } from "./enforce-hidden";
 
 type Scope = {
   fields: Record<string, string>;
@@ -15,7 +17,10 @@ type Scope = {
 
 let hasWarnedAboutMalformedField = false;
 
-export function extractContent(doc: PMNode): FileContent {
+export function extractContent(
+  doc: PMNode,
+  groupListLayouts: Record<string, LayoutNode[]> = {},
+): FileContent {
   const result: FileContent = {
     fields: {},
     lists: {},
@@ -24,13 +29,17 @@ export function extractContent(doc: PMNode): FileContent {
   };
 
   doc.forEach((topNode) => {
-    extractLayoutNode(topNode, result);
+    extractLayoutNode(topNode, result, groupListLayouts);
   });
 
   return result;
 }
 
-function extractLayoutNode(node: PMNode, scope: Scope) {
+function extractLayoutNode(
+  node: PMNode,
+  scope: Scope,
+  groupListLayouts: Record<string, LayoutNode[]>,
+) {
   if (node.type.name === "row") {
     node.forEach((child) => {
       if (child.type.name === "field") {
@@ -75,13 +84,27 @@ function extractLayoutNode(node: PMNode, scope: Scope) {
       inlineLists: {},
       groupLists: {},
     };
+    const hiddenIds = readHiddenIds(instanceNode.attrs._hidden);
+    if (hiddenIds) {
+      instance._hidden = hiddenIds;
+    }
 
     instanceNode.forEach((innerNode) => {
-      extractLayoutNode(innerNode, instance);
+      extractLayoutNode(innerNode, instance, groupListLayouts);
     });
+    const layout = groupListLayouts[groupListId];
+    if (layout) {
+      enforceHidden(instance, layout);
+    }
 
     scope.groupLists[groupListId].push(instance);
   });
+}
+
+function readHiddenIds(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const hidden = raw.filter((id): id is string => typeof id === "string");
+  return hidden.length > 0 ? hidden : undefined;
 }
 
 function extractField(node: PMNode, scope: Scope) {
@@ -207,7 +230,7 @@ function escapeHTML(str: string): string {
 function escapeAttr(str: string): string {
   return str
     .replace(/&/g, "&amp;")
-    .replace(/\"/g, "&quot;")
+    .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }

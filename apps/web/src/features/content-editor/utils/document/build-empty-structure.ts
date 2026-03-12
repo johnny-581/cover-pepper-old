@@ -1,13 +1,20 @@
 import { nanoid } from "nanoid";
 import type {
+  GroupList,
   LayoutNode,
   Field,
   List,
   InlineList,
   GroupListDef,
+  RowBlock,
   ListItemStyle,
 } from "@pepper-apply/shared";
 import type { Node as PMNode } from "@tiptap/pm/model";
+import {
+  filterHiddenRowBlocks,
+  hiddenTargetId,
+  sanitizeHiddenIdsForLayout,
+} from "./enforce-hidden";
 
 export type JSONContent = {
   type?: string;
@@ -116,60 +123,109 @@ export function rewriteRowChildJSON(
 
 export function buildEmptyGroupListInstanceJSON(
   groupListDef: GroupListDef,
-  layout: LayoutNode[],
+  layout: GroupList["layout"],
+  hiddenIds?: string[],
 ): JSONContent {
+  const sanitizedHidden = sanitizeHiddenIdsForLayout(hiddenIds, layout);
+  const hiddenSet = new Set(sanitizedHidden ?? []);
+
   return {
     type: "groupListInstance",
-    attrs: { instanceKey: nanoid(8) },
-    content: buildEmptyLayoutNodes(layout, groupListDef.groupLists),
+    attrs: {
+      instanceKey: nanoid(8),
+      _hidden: sanitizedHidden,
+    },
+    content: buildEmptyLayoutNodes(layout, groupListDef.groupLists, hiddenSet),
   };
 }
 
 function buildEmptyLayoutNodes(
   layout: LayoutNode[],
   groupListDefs: GroupListDef[],
+  hiddenIds: Set<string> = new Set<string>(),
 ): JSONContent[] {
-  return layout.map((node) => {
-    if (node.type === "row") {
+  return layout
+    .map((node) => {
+      if (node.type === "row") {
+        return buildEmptyRowJSON(node.blocks, hiddenIds);
+      }
+
+      if (node.type === "list") {
+        if (isHidden(node, hiddenIds)) {
+          return null;
+        }
+        return buildEmptyListJSON(node);
+      }
+
+      if (node.type === "inlinelist") {
+        if (isHidden(node, hiddenIds)) {
+          return null;
+        }
+        return buildEmptyInlineListJSON(node);
+      }
+
+      const groupListDef = groupListDefs.find((group) => group.id === node.groupListId);
+      if (!groupListDef) {
+        throw new Error(`Unknown group list: ${node.groupListId}`);
+      }
+
       return {
-        type: "row",
-        content: node.blocks.map((block) => {
-          if (block.type === "decorator") {
-            return { type: "decorator", attrs: { text: block.text } };
-          }
-
-          if (block.type === "list") {
-            return buildEmptyListJSON(block);
-          }
-
-          if (block.type === "inlinelist") {
-            return buildEmptyInlineListJSON(block);
-          }
-
-          return buildEmptyFieldJSON(block);
-        }),
+        type: "groupList",
+        attrs: { groupListId: node.groupListId },
+        content: [buildEmptyGroupListInstanceJSON(groupListDef, node.layout)],
       };
-    }
+    })
+    .filter((node): node is JSONContent => node !== null);
+}
 
-    if (node.type === "list") {
-      return buildEmptyListJSON(node);
-    }
+function buildEmptyRowJSON(
+  blocks: RowBlock[],
+  hiddenIds: Set<string>,
+): JSONContent | null {
+  const shouldFilter = hiddenIds.size > 0
+    && blocks.some((block) => {
+      const id = hiddenTargetId(block);
+      return id != null && hiddenIds.has(id);
+    });
+  const rowBlocks = shouldFilter
+    ? filterHiddenRowBlocks(blocks, hiddenIds)
+    : blocks;
 
-    if (node.type === "inlinelist") {
-      return buildEmptyInlineListJSON(node);
-    }
+  if (rowBlocks.length === 0) {
+    return null;
+  }
 
-    const groupListDef = groupListDefs.find((group) => group.id === node.groupListId);
-    if (!groupListDef) {
-      throw new Error(`Unknown group list: ${node.groupListId}`);
-    }
+  return {
+    type: "row",
+    content: rowBlocks.map((block) => {
+      if (block.type === "decorator") {
+        return { type: "decorator", attrs: { text: block.text } };
+      }
 
-    return {
-      type: "groupList",
-      attrs: { groupListId: node.groupListId },
-      content: [buildEmptyGroupListInstanceJSON(groupListDef, node.layout)],
-    };
-  });
+      if (block.type === "list") {
+        return buildEmptyListJSON(block);
+      }
+
+      if (block.type === "inlinelist") {
+        return buildEmptyInlineListJSON(block);
+      }
+
+      return buildEmptyFieldJSON(block);
+    }),
+  };
+}
+
+function isHidden(
+  block: List | InlineList | RowBlock,
+  hiddenIds: Set<string>,
+): boolean {
+  if (hiddenIds.size === 0) {
+    return false;
+  }
+
+  const id = hiddenTargetId(block);
+  if (!id) return false;
+  return hiddenIds.has(id);
 }
 
 function buildEmptyFieldJSON(block: Field): JSONContent {

@@ -252,7 +252,14 @@ export const templateContent: FileContent = {
           entries: [
             {
               _key: "o9xd5avp",
-              _hidden: ["location", "tags"],
+              _hidden: [
+                "subtitle",
+                "startDate",
+                "endDate",
+                "location",
+                "tags",
+                "entryTitle",
+              ],
               fields: {
                 entryTitle: "",
                 subtitle: "",

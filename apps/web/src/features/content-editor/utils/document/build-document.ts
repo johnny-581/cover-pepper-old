@@ -1,6 +1,7 @@
 import type {
   FileContent,
   GroupListInstance,
+  GroupList,
   LayoutNode,
   RowBlock,
   Field,
@@ -12,6 +13,11 @@ import type {
   ListItem,
   ListItemStyle,
 } from "@pepper-apply/shared";
+import {
+  enforceHidden,
+  filterHiddenRowBlocks,
+  hiddenTargetId,
+} from "./enforce-hidden";
 
 type JSONContent = {
   type?: string;
@@ -47,36 +53,59 @@ function buildLayoutNodes(
   layout: LayoutNode[],
   scope: Scope,
   groupListDefs: GroupListDef[],
+  hiddenIds: Set<string> = new Set<string>(),
 ): JSONContent[] {
-  return layout.map((node) => {
-    if (node.type === "row") {
-      return buildRow(node.blocks, scope);
-    }
+  return layout
+    .map((node) => {
+      if (node.type === "row") {
+        return buildRow(node.blocks, scope, hiddenIds);
+      }
 
-    if (node.type === "list") {
-      return buildList(node, scope);
-    }
+      if (node.type === "list") {
+        if (isHidden(node, hiddenIds)) {
+          return null;
+        }
+        return buildList(node, scope);
+      }
 
-    if (node.type === "inlinelist") {
-      return buildInlineList(node, scope);
-    }
+      if (node.type === "inlinelist") {
+        if (isHidden(node, hiddenIds)) {
+          return null;
+        }
+        return buildInlineList(node, scope);
+      }
 
-    const groupListDef = groupListDefs.find((g) => g.id === node.groupListId);
-    if (!groupListDef) {
-      throw new Error(`Unknown group list: ${node.groupListId}`);
-    }
+      const groupListDef = groupListDefs.find((g) => g.id === node.groupListId);
+      if (!groupListDef) {
+        throw new Error(`Unknown group list: ${node.groupListId}`);
+      }
 
-    return buildGroupList(node.groupListId, groupListDef, node.layout, scope);
-  });
+      return buildGroupList(node.groupListId, groupListDef, node.layout, scope);
+    })
+    .filter((node): node is JSONContent => node !== null);
 }
 
 function buildRow(
   blocks: RowBlock[],
   scope: Scope,
-): JSONContent {
+  hiddenIds: Set<string>,
+): JSONContent | null {
+  const shouldFilter = hiddenIds.size > 0
+    && blocks.some((block) => {
+      const id = hiddenTargetId(block);
+      return id != null && hiddenIds.has(id);
+    });
+  const rowBlocks = shouldFilter
+    ? filterHiddenRowBlocks(blocks, hiddenIds)
+    : blocks;
+
+  if (rowBlocks.length === 0) {
+    return null;
+  }
+
   return {
     type: "row",
-    content: blocks.map((block) => {
+    content: rowBlocks.map((block) => {
       if (block.type === "decorator") {
         return { type: "decorator", attrs: { text: block.text } };
       }
@@ -90,6 +119,55 @@ function buildRow(
       }
 
       return buildField(block, scope);
+    }),
+  };
+}
+
+function isHidden(
+  block: List | InlineList | RowBlock,
+  hiddenIds: Set<string>,
+): boolean {
+  if (hiddenIds.size === 0) {
+    return false;
+  }
+
+  const id = hiddenTargetId(block);
+  if (!id) return false;
+  return hiddenIds.has(id);
+}
+
+function buildGroupList(
+  groupListId: string,
+  groupListDef: GroupListDef,
+  layout: GroupList["layout"],
+  scope: Scope,
+): JSONContent {
+  const instances = scope.groupLists[groupListId] ?? [];
+
+  return {
+    type: "groupList",
+    attrs: { groupListId },
+    content: instances.map((instance) => {
+      const nextInstance: GroupListInstance = {
+        ...instance,
+        _hidden: instance._hidden ? [...instance._hidden] : undefined,
+      };
+      enforceHidden(nextInstance, layout);
+      const instanceHidden = new Set(nextInstance._hidden ?? []);
+
+      return {
+        type: "groupListInstance",
+        attrs: {
+          instanceKey: nextInstance._key,
+          _hidden: nextInstance._hidden,
+        },
+        content: buildLayoutNodes(
+          layout,
+          nextInstance,
+          groupListDef.groupLists,
+          instanceHidden,
+        ),
+      };
     }),
   };
 }
@@ -197,29 +275,6 @@ function normalizeListItemStyle(
   }
 
   return fallback;
-}
-
-function buildGroupList(
-  groupListId: string,
-  groupListDef: GroupListDef,
-  layout: LayoutNode[],
-  scope: Scope,
-): JSONContent {
-  const instances = scope.groupLists[groupListId] ?? [];
-
-  return {
-    type: "groupList",
-    attrs: { groupListId },
-    content: instances.map((instance) => ({
-      type: "groupListInstance",
-      attrs: { instanceKey: instance._key },
-      content: buildLayoutNodes(
-        layout,
-        instance,
-        groupListDef.groupLists,
-      ),
-    })),
-  };
 }
 
 /**
