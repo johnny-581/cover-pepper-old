@@ -27,7 +27,7 @@
     { "id": "name" },
     { "id": "date" },
     { "id": "company" },
-    { "id": "address", "optional": true },
+    { "id": "address" },
     { "id": "subject" },
     { "id": "greeting" },
     { "id": "closing" }

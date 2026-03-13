@@ -40,10 +40,10 @@ export const templateLatex = String.raw`\documentclass[letterpaper,11pt]{article
 
 %----------CUSTOM COMMANDS----------
 
-% \entry{title}{dates}{subtitle}{location}
+% \entry{title}{dates}{entrySubtitle}{location}
 %   - All blank    → bare \item for content-only sections (e.g. Technical Skills)
-%   - No subtitle  → single-row project heading (\small)
-%   - With subtitle → two-row subheading (bold title, italic subtitle)
+%   - No entrySubtitle  → single-row project heading (\small)
+%   - With entrySubtitle → two-row subheading (bold title, italic entrySubtitle)
 \newcommand{\entry}[4]{%
   \ifboolexpr{
     test {\ifblank{#1}} and test {\ifblank{#2}}
@@ -96,9 +96,9 @@ export const templateLatex = String.raw`\documentclass[letterpaper,11pt]{article
 \begin{group-list}{entries}
 
   \entry
-    {\field{entryTitle}\begin{if}{tags}{\textnormal{ $|$ \emph{\inlinelist{tags}{, }}}}\end{if}}
+    {\field{entryTitle}}
     {\begin{if}{startDate}\field{startDate} -- \field{endDate}\end{if}}
-    {\field{subtitle}}
+    {\field{entrySubtitle}}
     {\field{location}}
 
   \list{highlights}[bullet=tightitemize]

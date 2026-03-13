@@ -23,7 +23,7 @@
 
 ### Template Spec
 
-Lists and inline lists are fully separate types at every level. `itemId` is dropped — `\list` and `\inlinelist` render items directly from content without per-item field resolution.
+The spec is **derived from the LaTeX source** on every save — it is never authored or stored independently. The parser produces a fresh `TemplateSpec` from the template commands, and this derived spec is cached on the template record for fast access.
 
 ```typescript
 type TemplateSpec = {
@@ -33,7 +33,7 @@ type TemplateSpec = {
   groupLists: GroupListDef[];
 };
 
-type FieldDef = { id: string; optional?: boolean };
+type FieldDef = { id: string };
 type ListDef = { id: string };
 type InlineListDef = { id: string };
 type GroupListDef = {
@@ -47,7 +47,7 @@ type GroupListDef = {
 
 ### Layout
 
-The layout is stored separately from the spec. It's a tree of nodes that controls how spec fields are arranged in the content editor. Field, List, and InlineList share a unified set of flat styling properties — no wrapper objects.
+The layout is a tree of nodes that controls how fields are arranged in the content editor. It references field and list IDs from the derived spec. Field, List, and InlineList share a unified set of flat styling properties — no wrapper objects.
 
 ```typescript
 type TemplateLayout = LayoutNode[];
@@ -328,6 +328,8 @@ All commands resolve IDs relative to the nearest enclosing `\begin{group-list}` 
 
 Parse the template into an AST of text + command nodes, then walk it with the content. Single pass, no intermediate translation. Validate matching `\begin`/`\end` pairs and report errors with line numbers.
 
+The same parser also drives **spec derivation** (section 5): as it encounters template commands, it accumulates field, list, inline list, and group list definitions into a `TemplateSpec`. This means parsing runs once and produces both the AST (for the templating engine) and the derived spec (for layout sync).
+
 The parser must handle:
 
 - `\field{id}` — single argument
@@ -340,27 +342,43 @@ The parser must handle:
 
 ## 5. Layout–Spec Sync
 
-The layout references field and list IDs from the spec. Since the Layout Editor is deferred, the main risk is LaTeX edits that add/remove fields without updating the layout.
+The spec is derived from the LaTeX source on every save. The layout references field and list IDs from the derived spec. Since the Layout Editor is deferred, the main risk is LaTeX edits that add/remove fields without the layout updating — the sync process handles this automatically.
 
-**On template save**, run a validator that checks every `fieldId`, `listId`, and `groupListId` in the layout exists in the spec, and every spec entry appears in the layout (warning if missing).
+### Save pipeline
 
-The template is the source of truth. Sync derives types from the commands used:
+On every LaTeX save, the following steps run as a **single database transaction**. If any step fails, everything rolls back — the previous LaTeX, spec, and layout are retained.
 
-- `\field{id}` → add to `spec.fields`
-- `\list{id}` → add to `spec.lists`, create `List` in layout
-- `\inlinelist{id}{sep}` → add to `spec.inlineLists`, create `InlineList` in layout
-- `\begin{group-list}{id}` → add to `spec.groupLists`, create `GroupList` in layout
+1. **Parse LaTeX → derive spec.** The parser walks the AST and produces a fresh `TemplateSpec`. This is the same parser described in section 4 (Parsing), extended to accumulate spec entries as it encounters template commands:
 
-**Field added in LaTeX:** Auto-add to spec + append a default node at the end of the relevant layout scope.
+   | LaTeX command            | Produces                         |
+   | ------------------------ | -------------------------------- |
+   | `\field{id}`             | `FieldDef` in current scope      |
+   | `\list{id}`              | `ListDef` in current scope       |
+   | `\inlinelist{id}{sep}`   | `InlineListDef` in current scope |
+   | `\begin{group-list}{id}` | `GroupListDef`, push new scope   |
+   | `\end{group-list}`       | Pop scope                        |
 
-**Field removed from LaTeX:** Remove from spec + layout. Warn about orphaned content (don't delete it — user may re-add the field). Also clean up any `_hidden` references to the removed ID across all group list instances.
+   If the same ID appears multiple times within a scope (e.g. `\field{name}` used twice), it produces a single entry. Cross-namespace collisions (a field and a list sharing the same ID within a scope) are a validation error.
 
-**List type changed** (e.g. `\list` → `\inlinelist`): Migrate between namespaces in spec, content, and layout. Content migrates from `ListItem[]` to `string[]` by extracting `.text` (style is discarded). Reverse direction seeds `style` from `defaultItemStyle`.
+2. **Diff spec → update layout.** Compare the new derived spec against the previous derived spec. On **first save** (no previous spec exists), the entire derived spec is treated as "everything added" and a full default layout is auto-generated.
 
-**Validation errors:**
+   For subsequent saves:
+   - **Field/list added:** Append a default layout node at the end of the relevant scope.
+   - **Field/list removed:** Remove from layout. Warn about orphaned content in existing files (don't delete content — the user may re-add the field). Clean up any `_hidden` references to the removed ID across all group list instances.
+   - **Type changed** (e.g. `\list` → `\inlinelist`): Migrate the node in layout. Migrate content in existing files (`ListItem[]` → `string[]` by extracting `.text`; reverse seeds `style` from `defaultItemStyle`).
 
-- List ID referenced by both `\list` and `\inlinelist` → sync error.
-- `\begin{each}` usage → sync error (removed command).
+3. **Write LaTeX, derived spec, and updated layout** in the same transaction.
+
+### Validation errors (block save)
+
+- **Parse failure** (malformed LaTeX, unmatched braces): Save is blocked. The previous spec and layout are retained. The user sees the parse error with a line number.
+- Same ID used as both `\list` and `\inlinelist` within a scope.
+- Unmatched `\begin`/`\end` pairs.
+
+### Warnings (non-blocking)
+
+- Spec field missing from layout (auto-appended, but worth flagging).
+- Orphaned content in files for removed fields.
 
 ---
 
@@ -436,7 +454,7 @@ Monaco with custom highlighting for the template commands: `\field`, `\list`, `\
 
 **Template forking:** Edits affect all files using the template. To change it for one file only, fork it into a new template.
 
-**On save:** Parse LaTeX → diff against spec → run sync (section 5) → validate layout. Errors block save; warnings are non-blocking.
+**On save:** Run the save pipeline (section 5): parse LaTeX → derive spec → diff → update layout → write all in one transaction. Errors block save with line numbers; warnings are non-blocking.
 
 ---
 
@@ -469,7 +487,7 @@ Application
 Template
 ├── id, name, type ("resume" | "coverLetter")
 ├── latex (raw LaTeX source)
-├── spec (TemplateSpec — fields, lists, inlineLists, groupLists)
+├── spec (TemplateSpec — derived from latex on save, cached)
 └── layout (TemplateLayout — editor arrangement of spec fields)
 ```
 

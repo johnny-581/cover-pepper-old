@@ -24,31 +24,31 @@ export const templateContent: FileContent = {
           entries: [
             {
               _key: "b9sw3qnx",
-              _hidden: ["tags"],
+              _hidden: ["highlights"],
               fields: {
                 entryTitle: "Southwestern University",
-                subtitle:
+                entrySubtitle:
                   "Bachelor of Arts in Computer Science, Minor in Business",
                 startDate: "Aug 2018",
                 endDate: "May 2021",
                 location: "Georgetown, TX",
               },
               lists: { highlights: [] },
-              inlineLists: { tags: [] },
+              inlineLists: {},
               groupLists: {},
             },
             {
               _key: "r6ht1kyz",
-              _hidden: ["tags"],
+              _hidden: ["highlights"],
               fields: {
                 entryTitle: "Blinn College",
-                subtitle: "Associate's in Liberal Arts",
+                entrySubtitle: "Associate's in Liberal Arts",
                 startDate: "Aug 2014",
                 endDate: "May 2018",
                 location: "Bryan, TX",
               },
               lists: { highlights: [] },
-              inlineLists: { tags: [] },
+              inlineLists: {},
               groupLists: {},
             },
           ],
@@ -63,10 +63,9 @@ export const templateContent: FileContent = {
           entries: [
             {
               _key: "f7ag2bnq",
-              _hidden: ["tags"],
               fields: {
                 entryTitle: "Undergraduate Research Assistant",
-                subtitle: "Texas A&M University",
+                entrySubtitle: "Texas A&M University",
                 startDate: "June 2020",
                 endDate: "Present",
                 location: "College Station, TX",
@@ -87,15 +86,14 @@ export const templateContent: FileContent = {
                   },
                 ],
               },
-              inlineLists: { tags: [] },
+              inlineLists: {},
               groupLists: {},
             },
             {
               _key: "t1mp5rjk",
-              _hidden: ["tags"],
               fields: {
                 entryTitle: "Information Technology Support Specialist",
-                subtitle: "Southwestern University",
+                entrySubtitle: "Southwestern University",
                 startDate: "Sep 2018",
                 endDate: "Present",
                 location: "Georgetown, TX",
@@ -116,15 +114,14 @@ export const templateContent: FileContent = {
                   },
                 ],
               },
-              inlineLists: { tags: [] },
+              inlineLists: {},
               groupLists: {},
             },
             {
               _key: "u8nc4dhv",
-              _hidden: ["tags"],
               fields: {
                 entryTitle: "Artificial Intelligence Research Assistant",
-                subtitle: "Southwestern University",
+                entrySubtitle: "Southwestern University",
                 startDate: "May 2019",
                 endDate: "July 2019",
                 location: "Georgetown, TX",
@@ -157,7 +154,7 @@ export const templateContent: FileContent = {
                   },
                 ],
               },
-              inlineLists: { tags: [] },
+              inlineLists: {},
               groupLists: {},
             },
           ],
@@ -175,7 +172,7 @@ export const templateContent: FileContent = {
               _hidden: ["location"],
               fields: {
                 entryTitle: "Gitlytics",
-                subtitle: "",
+                entrySubtitle: "Python, Flask, React, PostgreSQL, Docker",
                 startDate: "June 2020",
                 endDate: "Present",
                 location: "",
@@ -200,9 +197,7 @@ export const templateContent: FileContent = {
                   },
                 ],
               },
-              inlineLists: {
-                tags: ["Python", "Flask", "React", "PostgreSQL", "Docker"],
-              },
+              inlineLists: {},
               groupLists: {},
             },
             {
@@ -210,7 +205,7 @@ export const templateContent: FileContent = {
               _hidden: ["location"],
               fields: {
                 entryTitle: "Simple Paintball",
-                subtitle: "",
+                entrySubtitle: "Spigot API, Java, Maven, TravisCI, Git",
                 startDate: "May 2018",
                 endDate: "May 2020",
                 location: "",
@@ -235,9 +230,7 @@ export const templateContent: FileContent = {
                   },
                 ],
               },
-              inlineLists: {
-                tags: ["Spigot API", "Java", "Maven", "TravisCI", "Git"],
-              },
+              inlineLists: {},
               groupLists: {},
             },
           ],
@@ -253,16 +246,15 @@ export const templateContent: FileContent = {
             {
               _key: "o9xd5avp",
               _hidden: [
-                "subtitle",
+                "entrySubtitle",
                 "startDate",
                 "endDate",
                 "location",
-                "tags",
                 "entryTitle",
               ],
               fields: {
                 entryTitle: "",
-                subtitle: "",
+                entrySubtitle: "",
                 startDate: "",
                 endDate: "",
                 location: "",
@@ -287,7 +279,7 @@ export const templateContent: FileContent = {
                   },
                 ],
               },
-              inlineLists: { tags: [] },
+              inlineLists: {},
               groupLists: {},
             },
           ],

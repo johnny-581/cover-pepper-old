@@ -1,6 +1,6 @@
 import type { ListItemStyle } from "./content";
 
-export type FieldDef = { id: string; optional?: boolean };
+export type FieldDef = { id: string };
 export type ListDef = { id: string };
 export type InlineListDef = { id: string };
 export type GroupListDef = {

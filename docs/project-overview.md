@@ -19,7 +19,7 @@ Content and presentation are kept separate. The LaTeX template contains no conte
 **Template** — Defines how a file is structured and rendered. Each template has a type (e.g. resume, cover letter) and should only be applied to files of the matching type. A template contains the following:
 
 - **LaTeX source** — The tagged LaTeX string. Combined with content via a templating engine to produce the final PDF.
-- **Spec** — Defines what content the template expects: its fields, lists, and group lists. Acts as the contract between the LaTeX source and the content editor.
+- **Spec** — Derived from the LaTeX source on every save. Defines what content the template expects: its fields, lists, and group lists. Acts as a cached contract between the LaTeX source and the content editor — never authored directly.
 - **Layout** — Controls how the spec's fields are arranged in the content editor (not in the PDF). Stored alongside the spec as JSON.
 - Other template metadata like name, type, author, createdAt, etc.
 
@@ -77,7 +77,7 @@ In this mode you can:
 
 **Layout rules:** Every line must be fully covered by blocks — no empty horizontal space. If multiple blocks share a line, one is marked as **fill** (stretches to fill remaining space) and the rest **hug** their content. This ensures clicking anywhere on the canvas lands your cursor in a field.
 
-The layout is stored in the template's spec and stays in sync with the fields defined in the LaTeX source.
+The layout is stored on the template and stays in sync with the fields defined in the LaTeX source.
 
 # The LaTeX Editor
 
