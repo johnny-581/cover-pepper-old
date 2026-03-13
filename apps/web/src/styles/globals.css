@@ -191,6 +191,11 @@
 
 /* ── Content editor structural layout ───────────────────────────────── */
 
+/* Selects the react-renderer which wraps the data-node-view-wrapper of the field */
+.node-field[data-sizing="fill"] {
+  flex: 1 1 0%;
+}
+
 /* Rows */
 div[data-type="row"] {
   display: flex;
@@ -205,7 +210,7 @@ div[data-type="row"]:not(:has(> [data-sizing="fill"])) {
   justify-content: center;
 }
 
-/* Block group wrapper inside rows */
+/* Block group */
 div[data-type="block-group"] {
   display: flex;
   align-items: center;
@@ -222,12 +227,7 @@ div[data-type="block-group"][data-sizing="hug"] {
   flex-shrink: 0;
 }
 
-/* Selects the react-renderer which wraps the data-node-view-wrapper of the field */
-.node-field[data-sizing="fill"] {
-  flex: 1 1 0%;
-}
-
-/* Group lists */
+/* Group list */
 div[data-type="group-list"] {
   display: flex;
   flex-direction: column;
@@ -251,10 +251,4 @@ div[data-type="group-list"] {
   white-space: nowrap;
   color: var(--muted-foreground);
   opacity: 0.5;
-}
-
-/* Field placeholder centers vertically to match field content */
-.field [data-placeholder]::before {
-  top: 50%;
-  transform: translateY(-50%);
 }

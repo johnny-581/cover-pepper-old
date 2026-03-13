@@ -34,7 +34,9 @@ export function InlineListItemView({ editor, getPos, node }: NodeViewProps) {
   }
 
   return (
-    <NodeViewWrapper className={cn(NODE_PADDING, "relative flex items-center min-w-0")}>
+    <NodeViewWrapper
+      className={cn(NODE_PADDING, "relative flex items-center min-w-0")}
+    >
       {/* Reserve width so empty placeholders center the same way as fields. */}
       {showPlaceholder && (
         <span className="invisible whitespace-nowrap h-0 block overflow-hidden">

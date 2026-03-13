@@ -29,8 +29,8 @@ export const templateContent: FileContent = {
                 entryTitle: "Southwestern University",
                 entrySubtitle:
                   "Bachelor of Arts in Computer Science, Minor in Business",
-                startDate: "Aug 2018",
-                endDate: "May 2021",
+                startDate: "<i>Aug 2018</i>",
+                endDate: "<i>May 2021</i>",
                 location: "Georgetown, TX",
               },
               lists: { highlights: [] },
@@ -43,8 +43,8 @@ export const templateContent: FileContent = {
               fields: {
                 entryTitle: "Blinn College",
                 entrySubtitle: "Associate's in Liberal Arts",
-                startDate: "Aug 2014",
-                endDate: "May 2018",
+                startDate: "<i>Aug 2014</i>",
+                endDate: "<i>May 2018</i>",
                 location: "Bryan, TX",
               },
               lists: { highlights: [] },
@@ -66,8 +66,8 @@ export const templateContent: FileContent = {
               fields: {
                 entryTitle: "Undergraduate Research Assistant",
                 entrySubtitle: "Texas A&M University",
-                startDate: "June 2020",
-                endDate: "Present",
+                startDate: "<i>June 2020</i>",
+                endDate: "<i>Present</i>",
                 location: "College Station, TX",
               },
               lists: {
@@ -94,8 +94,8 @@ export const templateContent: FileContent = {
               fields: {
                 entryTitle: "Information Technology Support Specialist",
                 entrySubtitle: "Southwestern University",
-                startDate: "Sep 2018",
-                endDate: "Present",
+                startDate: "<i>Sep 2018</i>",
+                endDate: "<i>Present</i>",
                 location: "Georgetown, TX",
               },
               lists: {
@@ -122,8 +122,8 @@ export const templateContent: FileContent = {
               fields: {
                 entryTitle: "Artificial Intelligence Research Assistant",
                 entrySubtitle: "Southwestern University",
-                startDate: "May 2019",
-                endDate: "July 2019",
+                startDate: "<i>May 2019</i>",
+                endDate: "<i>July 2019</i>",
                 location: "Georgetown, TX",
               },
               lists: {
@@ -173,8 +173,8 @@ export const templateContent: FileContent = {
               fields: {
                 entryTitle: "Gitlytics",
                 entrySubtitle: "Python, Flask, React, PostgreSQL, Docker",
-                startDate: "June 2020",
-                endDate: "Present",
+                startDate: "<i>June 2020</i>",
+                endDate: "<i>Present</i>",
                 location: "",
               },
               lists: {
@@ -206,8 +206,8 @@ export const templateContent: FileContent = {
               fields: {
                 entryTitle: "Simple Paintball",
                 entrySubtitle: "Spigot API, Java, Maven, TravisCI, Git",
-                startDate: "May 2018",
-                endDate: "May 2020",
+                startDate: "<i>May 2018</i>",
+                endDate: "<i>May 2020</i>",
                 location: "",
               },
               lists: {
