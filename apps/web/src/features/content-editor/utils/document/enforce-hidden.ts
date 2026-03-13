@@ -1,4 +1,5 @@
 import type {
+  BlockGroup,
   GroupList,
   GroupListInstance,
   LayoutNode,
@@ -12,7 +13,18 @@ type HideableEntry = {
   kind: HideableKind;
 };
 
-type LayoutBlock = LayoutNode | RowBlock;
+type GroupChildBlock = BlockGroup["blocks"][number];
+type LayoutBlock = LayoutNode | RowBlock | GroupChildBlock;
+
+type IndexedRowBlock = {
+  block: RowBlock;
+  sourceIndex: number;
+};
+
+type IndexedGroupBlock = {
+  block: GroupChildBlock;
+  sourceIndex: number;
+};
 
 const HIDEABLE_KINDS = new Set<HideableKind>(["field", "list", "inlinelist"]);
 
@@ -72,50 +84,75 @@ export function filterHiddenRowBlocks(
   blocks: RowBlock[],
   hiddenIds: Set<string>,
 ): RowBlock[] {
-  const hiddenFillTriggers: number[] = [];
-  const keepEditable = blocks.map((block, index) => {
-    if (!HIDEABLE_KINDS.has(block.type as HideableKind)) {
-      return false;
+  const fillTransferTriggers: number[] = [];
+  const visibleBlocks: IndexedRowBlock[] = [];
+
+  for (let index = 0; index < blocks.length; index += 1) {
+    const block = blocks[index];
+
+    if (block.type === "decorator") {
+      visibleBlocks.push({ block, sourceIndex: index });
+      continue;
+    }
+
+    if (block.type === "group") {
+      const visibleChildren = filterGroupBlocks(block.blocks, hiddenIds);
+
+      if (visibleChildren.length === 0) {
+        if (block.sizing === "fill") {
+          fillTransferTriggers.push(index);
+        }
+        continue;
+      }
+
+      if (visibleChildren.length === 1) {
+        const flattened = flattenGroupChild(visibleChildren[0], block.sizing);
+        if (block.sizing === "fill" && !isFillSizableRowBlock(flattened)) {
+          fillTransferTriggers.push(index);
+        }
+        visibleBlocks.push({
+          block: flattened,
+          sourceIndex: index,
+        });
+        continue;
+      }
+
+      visibleBlocks.push({
+        block: { ...block, blocks: visibleChildren },
+        sourceIndex: index,
+      });
+      continue;
     }
 
     const id = hiddenTargetId(block);
-    if (!id) return false;
-    const isHidden = hiddenIds.has(id);
-    if (isHidden && isFillTransferTrigger(block)) {
-      hiddenFillTriggers.push(index);
-    }
-    return !isHidden;
-  });
-
-  const visibleBlocks = blocks
-    .map((block, index) => ({ block, index }))
-    .filter(({ block, index }) => {
-      if (block.type !== "decorator") {
-        return keepEditable[index];
+    const isHidden = id != null && hiddenIds.has(id);
+    if (isHidden) {
+      if (isFillTransferTrigger(block)) {
+        fillTransferTriggers.push(index);
       }
+      continue;
+    }
 
-      return hasVisibleEditable(keepEditable, blocks, index, -1)
-        && hasVisibleEditable(keepEditable, blocks, index, 1);
-    });
-
-  if (hiddenFillTriggers.length === 0) {
-    return visibleBlocks.map(({ block }) => block);
+    visibleBlocks.push({ block, sourceIndex: index });
   }
 
-  const promotedOriginalIndexes = new Set<number>();
-  for (const triggerIndex of hiddenFillTriggers) {
-    const targetIndex = findLeftFillTransferTarget(
-      blocks,
-      keepEditable,
-      triggerIndex,
-    );
+  const cleanedBlocks = filterIndexedDecorators(visibleBlocks, ({ block }) =>
+    isEditableRowBlock(block)
+  );
+  if (fillTransferTriggers.length === 0) {
+    return cleanedBlocks.map(({ block }) => block);
+  }
+
+  const promotedIndexes = new Set<number>();
+  for (const triggerIndex of fillTransferTriggers) {
+    const targetIndex = findLeftFillTransferTarget(cleanedBlocks, triggerIndex);
     if (targetIndex != null) {
-      promotedOriginalIndexes.add(targetIndex);
+      promotedIndexes.add(targetIndex);
     }
   }
 
-  return visibleBlocks.map(({ block, index }) => {
-    if (!promotedOriginalIndexes.has(index)) {
+  return cleanedBlocks.map(({ block }, index) => {
+    if (!promotedIndexes.has(index)) {
       return block;
     }
 
@@ -123,37 +160,120 @@ export function filterHiddenRowBlocks(
   });
 }
 
-function hasVisibleEditable(
-  keepEditable: boolean[],
-  blocks: RowBlock[],
+export function filterGroupBlocks(
+  blocks: GroupChildBlock[],
+  hiddenIds: Set<string> = new Set<string>(),
+): GroupChildBlock[] {
+  const visible: IndexedGroupBlock[] = [];
+
+  for (let index = 0; index < blocks.length; index += 1) {
+    const block = blocks[index];
+    if (block.type === "decorator") {
+      visible.push({ block, sourceIndex: index });
+      continue;
+    }
+
+    const id = hiddenTargetId(block);
+    if (id != null && hiddenIds.has(id)) {
+      continue;
+    }
+    visible.push({ block, sourceIndex: index });
+  }
+
+  return filterIndexedDecorators(
+    visible,
+    ({ block }) => isEditableGroupBlock(block),
+    "either",
+  ).map(({ block }) => block);
+}
+
+function flattenGroupChild(
+  block: GroupChildBlock,
+  groupSizing: BlockGroup["sizing"],
+): RowBlock {
+  if (groupSizing !== "fill") {
+    return block;
+  }
+
+  if (block.type !== "field" && block.type !== "inlinelist") {
+    return block;
+  }
+
+  if (block.sizing === "fill") {
+    return block;
+  }
+
+  return {
+    ...block,
+    sizing: "fill",
+  };
+}
+
+function isEditableGroupBlock(block: GroupChildBlock): boolean {
+  return block.type === "field" || block.type === "inlinelist";
+}
+
+function isEditableRowBlock(block: RowBlock): boolean {
+  if (block.type === "field" || block.type === "list" || block.type === "inlinelist") {
+    return true;
+  }
+
+  if (block.type !== "group") {
+    return false;
+  }
+
+  return block.blocks.some((child) => isEditableGroupBlock(child));
+}
+
+function filterIndexedDecorators<T extends { type: string }>(
+  blocks: Array<{ block: T; sourceIndex: number }>,
+  isEditable: (entry: { block: T; sourceIndex: number }) => boolean,
+  policy: "both" | "either" = "both",
+): Array<{ block: T; sourceIndex: number }> {
+  return blocks.filter((entry, index) => {
+    if (entry.block.type !== "decorator") {
+      return true;
+    }
+
+    const hasLeftNeighbor = hasEditableNeighbor(blocks, index, -1, isEditable);
+    const hasRightNeighbor = hasEditableNeighbor(blocks, index, 1, isEditable);
+
+    if (policy === "either") {
+      return hasLeftNeighbor || hasRightNeighbor;
+    }
+
+    return hasLeftNeighbor && hasRightNeighbor;
+  });
+}
+
+function hasEditableNeighbor<T extends { type: string }>(
+  blocks: Array<{ block: T; sourceIndex: number }>,
   fromIndex: number,
   direction: -1 | 1,
+  isEditable: (entry: { block: T; sourceIndex: number }) => boolean,
 ): boolean {
   for (
     let index = fromIndex + direction;
     index >= 0 && index < blocks.length;
     index += direction
   ) {
-    if (blocks[index].type === "decorator") continue;
-    return keepEditable[index];
+    const entry = blocks[index];
+    if (entry.block.type === "decorator") continue;
+    return isEditable(entry);
   }
 
   return false;
 }
 
 function findLeftFillTransferTarget(
-  blocks: RowBlock[],
-  keepEditable: boolean[],
-  triggerIndex: number,
+  blocks: IndexedRowBlock[],
+  triggerSourceIndex: number,
 ): number | null {
-  for (let index = triggerIndex - 1; index >= 0; index -= 1) {
-    const block = blocks[index];
-    if (block.type === "decorator") continue;
-    if (!keepEditable[index]) continue;
-
-    if (block.type === "field" || block.type === "inlinelist") {
-      return index;
-    }
+  for (let index = blocks.length - 1; index >= 0; index -= 1) {
+    const entry = blocks[index];
+    if (entry.sourceIndex >= triggerSourceIndex) continue;
+    if (!isFillSizableRowBlock(entry.block)) continue;
+    return index;
   }
 
   return null;
@@ -164,8 +284,12 @@ function isFillTransferTrigger(block: RowBlock): boolean {
     && block.sizing === "fill";
 }
 
+function isFillSizableRowBlock(block: RowBlock): boolean {
+  return block.type === "field" || block.type === "inlinelist" || block.type === "group";
+}
+
 function withFillSizing(block: RowBlock): RowBlock {
-  if (block.type === "field" || block.type === "inlinelist") {
+  if (block.type === "field" || block.type === "inlinelist" || block.type === "group") {
     if (block.sizing === "fill") {
       return block;
     }
@@ -185,10 +309,7 @@ function collectHideableEntries(layout: LayoutNode[]): Map<string, HideableEntry
   for (const node of layout) {
     if (node.type === "row") {
       for (const block of node.blocks) {
-        const entry = toHideableEntry(block);
-        if (entry) {
-          entries.set(entry.id, entry);
-        }
+        collectHideableEntriesFromRowBlock(block, entries);
       }
       continue;
     }
@@ -204,6 +325,26 @@ function collectHideableEntries(layout: LayoutNode[]): Map<string, HideableEntry
   }
 
   return entries;
+}
+
+function collectHideableEntriesFromRowBlock(
+  block: RowBlock,
+  entries: Map<string, HideableEntry>,
+): void {
+  if (block.type === "group") {
+    for (const child of block.blocks) {
+      const entry = toHideableEntry(child);
+      if (entry) {
+        entries.set(entry.id, entry);
+      }
+    }
+    return;
+  }
+
+  const entry = toHideableEntry(block);
+  if (entry) {
+    entries.set(entry.id, entry);
+  }
 }
 
 function toHideableEntry(block: LayoutBlock): HideableEntry | null {

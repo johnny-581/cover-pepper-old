@@ -5,6 +5,7 @@ import Underline from "@tiptap/extension-underline";
 import { RowNode } from "./row";
 import { FieldNode } from "./field";
 import { DecoratorNode } from "./decorator";
+import { BlockGroupNode } from "./block-group";
 import { GroupListNode } from "./group-list";
 import { GroupListInstanceNode } from "./group-list-instance";
 import { ListNode } from "./list";
@@ -41,6 +42,7 @@ export function createDocumentExtensions() {
     RowNode,
     FieldNode,
     DecoratorNode,
+    BlockGroupNode,
     GroupListNode,
     GroupListInstanceNode,
     ListNode,

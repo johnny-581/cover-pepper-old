@@ -1,32 +1,11 @@
 import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { cn } from "@/lib/utils";
-
-const fontClasses: Record<string, string> = {
-  sans: "font-sans",
-  serif: "font-serif",
-};
-
-const sizeClasses: Record<string, string> = {
-  small: "text-sm",
-  normal: "text-base",
-  heading: "text-2xl",
-};
-
-const bgClasses: Record<string, string> = {
-  none: "",
-  grey: "bg-muted",
-  yellow: "bg-cream dark:bg-cream-dim",
-};
+import { NODE_PADDING, nodeAttrClasses } from "./node-view-utils";
 
 export function FieldView({ node }: NodeViewProps) {
   const { font, size, background, sizing, defaultFormat, placeholder } =
     node.attrs;
-  const baseFormat = (defaultFormat ?? {}) as {
-    bold?: boolean;
-    italic?: boolean;
-    underline?: boolean;
-  };
 
   // Field always has exactly one paragraph child
   const isEmpty =
@@ -37,13 +16,11 @@ export function FieldView({ node }: NodeViewProps) {
   return (
     <NodeViewWrapper
       className={cn(
-        "field relative min-w-0 rounded px-1.5",
-        fontClasses[(font as string) ?? "sans"] ?? "",
-        sizeClasses[(size as string) ?? "normal"] ?? "",
-        bgClasses[background as string] ?? "",
-        baseFormat.bold && "font-bold",
-        baseFormat.italic && "italic",
-        baseFormat.underline && "underline",
+        NODE_PADDING,
+        "relative min-w-0 rounded",
+        sizing === "fill" && "flex-1",
+        sizing === "hug" && "shrink-0",
+        ...nodeAttrClasses({ font, size, background, defaultFormat }),
       )}
     >
       {/* Invisible placeholder text to reserve width for hug-sized fields */}

@@ -54,11 +54,30 @@ export const templateLayout: TemplateLayout = [
               {
                 type: "field",
                 fieldId: "entryTitle",
-                sizing: "fill",
+                sizing: "hug",
                 placeholder: "Title",
                 size: "small",
                 hideable: true,
                 defaultFormat: { bold: true },
+              },
+              {
+                type: "group",
+                sizing: "fill",
+                blocks: [
+                  {
+                    type: "decorator",
+                    text: "@",
+                  },
+                  {
+                    type: "field",
+                    fieldId: "location",
+                    sizing: "hug",
+                    placeholder: "Location",
+                    size: "small",
+                    hideable: true,
+                    defaultFormat: { italic: true },
+                  },
+                ],
               },
               {
                 type: "group",
@@ -91,29 +110,13 @@ export const templateLayout: TemplateLayout = [
             type: "row",
             blocks: [
               {
-                type: "group",
+                type: "field",
+                fieldId: "entrySubtitle",
                 sizing: "fill",
-                blocks: [
-                  {
-                    type: "field",
-                    fieldId: "entrySubtitle",
-                    sizing: "hug",
-                    placeholder: "Company",
-                    size: "small",
-                    hideable: true,
-                    defaultFormat: { italic: true },
-                  },
-                  { type: "decorator", text: " · " },
-                  {
-                    type: "field",
-                    fieldId: "location",
-                    sizing: "fill",
-                    placeholder: "Location",
-                    size: "small",
-                    hideable: true,
-                    defaultFormat: { italic: true },
-                  },
-                ],
+                placeholder: "Company",
+                size: "small",
+                hideable: true,
+                defaultFormat: { italic: true },
               },
             ],
           },

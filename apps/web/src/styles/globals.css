@@ -196,7 +196,7 @@ div[data-type="row"] {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 0.1rem;
+  gap: 1rem;
   width: 100%;
 }
 
@@ -205,15 +205,26 @@ div[data-type="row"]:not(:has(> [data-sizing="fill"])) {
   justify-content: center;
 }
 
-/* Field sizing inside rows (fill) */
-.node-field[data-sizing="fill"] {
+/* Block group wrapper inside rows */
+div[data-type="block-group"] {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+}
+
+div[data-type="block-group"][data-sizing="fill"] {
   flex: 1 1 0%;
   min-width: 0;
 }
 
-/* Field sizing inside rows (hug) */
-.node-field[data-sizing="hug"] {
+div[data-type="block-group"][data-sizing="hug"] {
   flex-shrink: 0;
+}
+
+/* Selects the react-renderer which wraps the data-node-view-wrapper of the field */
+.node-field[data-sizing="fill"] {
+  flex: 1 1 0%;
 }
 
 /* Group lists */
@@ -227,11 +238,8 @@ div[data-type="group-list"] {
 /* Inline list */
 .inline-list > * > [data-node-view-content] > [data-node-view-content-react] {
   display: inline-flex;
+  gap: 1rem;
 }
-
-/* div[data-type="group-list-instance"] {
-  padding: 0.5rem 0;
-} */
 
 /* Placeholder via pseudo-element — not part of the DOM, never selectable */
 [data-placeholder]::before {

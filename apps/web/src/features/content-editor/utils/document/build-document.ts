@@ -4,6 +4,7 @@ import type {
   GroupList,
   LayoutNode,
   RowBlock,
+  BlockGroup,
   Field,
   List,
   InlineList,
@@ -15,6 +16,7 @@ import type {
 } from "@pepper-apply/shared";
 import {
   enforceHidden,
+  filterGroupBlocks,
   filterHiddenRowBlocks,
   hiddenTargetId,
 } from "./enforce-hidden";
@@ -90,14 +92,9 @@ function buildRow(
   scope: Scope,
   hiddenIds: Set<string>,
 ): JSONContent | null {
-  const shouldFilter = hiddenIds.size > 0
-    && blocks.some((block) => {
-      const id = hiddenTargetId(block);
-      return id != null && hiddenIds.has(id);
-    });
-  const rowBlocks = shouldFilter
+  const rowBlocks = hiddenIds.size > 0
     ? filterHiddenRowBlocks(blocks, hiddenIds)
-    : blocks;
+    : normalizeRowGroups(blocks);
 
   if (rowBlocks.length === 0) {
     return null;
@@ -105,22 +102,59 @@ function buildRow(
 
   return {
     type: "row",
-    content: rowBlocks.map((block) => {
-      if (block.type === "decorator") {
-        return { type: "decorator", attrs: { text: block.text } };
-      }
-
-      if (block.type === "list") {
-        return buildList(block, scope);
-      }
-
-      if (block.type === "inlinelist") {
-        return buildInlineList(block, scope);
-      }
-
-      return buildField(block, scope);
-    }),
+    content: rowBlocks.map((block) => buildRowBlock(block, scope)),
   };
+}
+
+function normalizeRowGroups(blocks: RowBlock[]): RowBlock[] {
+  const normalizedBlocks: RowBlock[] = [];
+
+  for (const block of blocks) {
+    if (block.type !== "group") {
+      normalizedBlocks.push(block);
+      continue;
+    }
+
+    const visibleChildren = filterGroupBlocks(block.blocks);
+    if (visibleChildren.length === 0) {
+      continue;
+    }
+
+    if (visibleChildren.length === block.blocks.length) {
+      normalizedBlocks.push(block);
+      continue;
+    }
+
+    normalizedBlocks.push({
+      ...block,
+      blocks: visibleChildren,
+    });
+  }
+
+  return normalizedBlocks;
+}
+
+function buildRowBlock(
+  block: RowBlock,
+  scope: Scope,
+): JSONContent {
+  if (block.type === "decorator") {
+    return { type: "decorator", attrs: { text: block.text } };
+  }
+
+  if (block.type === "list") {
+    return buildList(block, scope);
+  }
+
+  if (block.type === "inlinelist") {
+    return buildInlineList(block, scope);
+  }
+
+  if (block.type === "group") {
+    return buildBlockGroup(block, scope);
+  }
+
+  return buildField(block, scope);
 }
 
 function isHidden(
@@ -253,6 +287,40 @@ function buildInlineList(
       type: "inlineListItem",
       content: [htmlToParagraph(item)],
     })),
+  };
+}
+
+function buildBlockGroup(
+  block: BlockGroup,
+  scope: Scope,
+): JSONContent {
+  return {
+    type: "blockGroup",
+    attrs: {
+      sizing: block.sizing,
+    },
+    content: block.blocks.map((child) => {
+      if (child.type === "decorator") {
+        return { type: "decorator", attrs: { text: child.text } };
+      }
+
+      if (child.type === "inlinelist") {
+        return buildInlineList(withHugSizing(child), scope);
+      }
+
+      return buildField(withHugSizing(child), scope);
+    }),
+  };
+}
+
+function withHugSizing<T extends Field | InlineList>(block: T): T {
+  if (block.sizing === "hug") {
+    return block;
+  }
+
+  return {
+    ...block,
+    sizing: "hug",
   };
 }
 

@@ -11,6 +11,7 @@ export type {
   RowBlock,
   Field,
   Decorator,
+  BlockGroup,
   List,
   InlineList,
   FontFamily,

@@ -1,5 +1,7 @@
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
+import { cn } from "@/lib/utils";
+import { NODE_PADDING } from "./node-view-utils";
 
 export function InlineListItemView({ editor, getPos, node }: NodeViewProps) {
   const pos = getPos();
@@ -32,22 +34,18 @@ export function InlineListItemView({ editor, getPos, node }: NodeViewProps) {
   }
 
   return (
-    <NodeViewWrapper className="inline-list-item relative flex items-center min-w-0">
+    <NodeViewWrapper className={cn(NODE_PADDING, "relative flex items-center min-w-0")}>
+      {/* Reserve width so empty placeholders center the same way as fields. */}
+      {showPlaceholder && (
+        <span className="invisible whitespace-nowrap h-0 block overflow-hidden">
+          {placeholderText}
+        </span>
+      )}
       <div
-        className="relative min-w-0 px-1.5"
+        className="relative min-w-0"
+        data-placeholder={showPlaceholder ? placeholderText : undefined}
       >
-        {/* Reserve width so empty placeholders center the same way as fields. */}
-        {showPlaceholder && (
-          <span className="invisible whitespace-nowrap h-0 block overflow-hidden">
-            {placeholderText}
-          </span>
-        )}
-        <div
-          className="relative min-w-0"
-          data-placeholder={showPlaceholder ? placeholderText : undefined}
-        >
-          <NodeViewContent className="[&_p]:m-0 leading-[inherit] min-w-px" />
-        </div>
+        <NodeViewContent className="[&_p]:m-0 leading-[inherit] min-w-px" />
       </div>
     </NodeViewWrapper>
   );

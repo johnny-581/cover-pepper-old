@@ -2,6 +2,7 @@ import { nanoid } from "nanoid";
 import type {
   GroupList,
   LayoutNode,
+  BlockGroup,
   Field,
   List,
   InlineList,
@@ -182,12 +183,7 @@ function buildEmptyRowJSON(
   blocks: RowBlock[],
   hiddenIds: Set<string>,
 ): JSONContent | null {
-  const shouldFilter = hiddenIds.size > 0
-    && blocks.some((block) => {
-      const id = hiddenTargetId(block);
-      return id != null && hiddenIds.has(id);
-    });
-  const rowBlocks = shouldFilter
+  const rowBlocks = hiddenIds.size > 0
     ? filterHiddenRowBlocks(blocks, hiddenIds)
     : blocks;
 
@@ -197,22 +193,28 @@ function buildEmptyRowJSON(
 
   return {
     type: "row",
-    content: rowBlocks.map((block) => {
-      if (block.type === "decorator") {
-        return { type: "decorator", attrs: { text: block.text } };
-      }
-
-      if (block.type === "list") {
-        return buildEmptyListJSON(block);
-      }
-
-      if (block.type === "inlinelist") {
-        return buildEmptyInlineListJSON(block);
-      }
-
-      return buildEmptyFieldJSON(block);
-    }),
+    content: rowBlocks.map((block) => buildEmptyRowBlockJSON(block)),
   };
+}
+
+function buildEmptyRowBlockJSON(block: RowBlock): JSONContent {
+  if (block.type === "decorator") {
+    return { type: "decorator", attrs: { text: block.text } };
+  }
+
+  if (block.type === "list") {
+    return buildEmptyListJSON(block);
+  }
+
+  if (block.type === "inlinelist") {
+    return buildEmptyInlineListJSON(block);
+  }
+
+  if (block.type === "group") {
+    return buildEmptyBlockGroupJSON(block);
+  }
+
+  return buildEmptyFieldJSON(block);
 }
 
 function isHidden(
@@ -279,6 +281,37 @@ function buildEmptyInlineListJSON(block: InlineList): JSONContent {
       placeholder: block.placeholder ?? "",
     },
     content: [buildEmptyInlineListItemJSON()],
+  };
+}
+
+function buildEmptyBlockGroupJSON(block: BlockGroup): JSONContent {
+  return {
+    type: "blockGroup",
+    attrs: {
+      sizing: block.sizing,
+    },
+    content: block.blocks.map((child) => {
+      if (child.type === "decorator") {
+        return { type: "decorator", attrs: { text: child.text } };
+      }
+
+      if (child.type === "inlinelist") {
+        return buildEmptyInlineListJSON(withHugSizing(child));
+      }
+
+      return buildEmptyFieldJSON(withHugSizing(child));
+    }),
+  };
+}
+
+function withHugSizing<T extends Field | InlineList>(block: T): T {
+  if (block.sizing === "hug") {
+    return block;
+  }
+
+  return {
+    ...block,
+    sizing: "hug",
   };
 }
 

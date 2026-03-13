@@ -147,12 +147,61 @@ function rewriteRowNode(
         );
       }
 
+      if (child.type.name === "blockGroup") {
+        return rewriteBlockGroupNode(
+          child,
+          childStart,
+          selectionFrom,
+          selectionTo,
+        );
+      }
+
       return unchanged(child);
     },
   );
 
   return {
     json: nodeWithContent(rowNode, rewritten.content),
+    changed: rewritten.changed,
+    anchor: rewritten.anchor,
+  };
+}
+
+function rewriteBlockGroupNode(
+  groupNode: PMNode,
+  groupStart: number,
+  selectionFrom: number,
+  selectionTo: number,
+): RewriteResult {
+  const rewritten = rewriteChildrenContent(
+    groupNode,
+    groupStart + 1,
+    selectionFrom,
+    selectionTo,
+    (child, childStart) => {
+      if (child.type.name === "decorator") {
+        return unchanged(child);
+      }
+
+      if (child.type.name === "field") {
+        return rewriteFieldNode(child, childStart, selectionFrom, selectionTo);
+      }
+
+      if (child.type.name === "inlineList") {
+        return rewriteInlineListNode(
+          child,
+          childStart,
+          selectionFrom,
+          selectionTo,
+        );
+      }
+
+      return unchanged(child);
+    },
+  );
+
+  return {
+    json: nodeWithContent(groupNode, rewritten.content),
     changed: rewritten.changed,
     anchor: rewritten.anchor,
   };

@@ -30,7 +30,7 @@ export type GroupList = {
   layout: LayoutNode[];
 };
 
-export type RowBlock = Field | Decorator | List | InlineList;
+export type RowBlock = Field | Decorator | List | InlineList | BlockGroup;
 
 export type FontFamily = "sans" | "serif";
 export type FontSize = "small" | "normal" | "heading";
@@ -54,6 +54,12 @@ export type Field = {
 };
 
 export type Decorator = { type: "decorator"; text: string };
+
+export type BlockGroup = {
+  type: "group";
+  sizing: "fill" | "hug";
+  blocks: (Field | Decorator | InlineList)[];
+};
 
 export type List = {
   type: "list";

@@ -24,7 +24,7 @@ export const templateContent: FileContent = {
           entries: [
             {
               _key: "b9sw3qnx",
-              _hidden: ["highlights"],
+              _hidden: ["highlights", "location"],
               fields: {
                 entryTitle: "Southwestern University",
                 entrySubtitle:

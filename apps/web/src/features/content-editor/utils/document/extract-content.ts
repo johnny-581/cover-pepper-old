@@ -42,13 +42,7 @@ function extractLayoutNode(
 ) {
   if (node.type.name === "row") {
     node.forEach((child) => {
-      if (child.type.name === "field") {
-        extractField(child, scope);
-      } else if (child.type.name === "list") {
-        extractList(child, scope);
-      } else if (child.type.name === "inlineList") {
-        extractInlineList(child, scope);
-      }
+      extractRowChild(child, scope);
     });
     return;
   }
@@ -98,6 +92,31 @@ function extractLayoutNode(
     }
 
     scope.groupLists[groupListId].push(instance);
+  });
+}
+
+function extractRowChild(node: PMNode, scope: Scope): void {
+  if (node.type.name === "field") {
+    extractField(node, scope);
+    return;
+  }
+
+  if (node.type.name === "list") {
+    extractList(node, scope);
+    return;
+  }
+
+  if (node.type.name === "inlineList") {
+    extractInlineList(node, scope);
+    return;
+  }
+
+  if (node.type.name !== "blockGroup") {
+    return;
+  }
+
+  node.forEach((child) => {
+    extractRowChild(child, scope);
   });
 }
 

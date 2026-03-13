@@ -1,6 +1,8 @@
 import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import type { ListItemStyle } from "@pepper-apply/shared";
+import { cn } from "@/lib/utils";
+import { NODE_PADDING } from "./node-view-utils";
 
 function normalizeListItemStyle(style: unknown): ListItemStyle {
   if (style === "plain" || style === "bullet" || style === "numbered") {
@@ -17,7 +19,9 @@ function resolveNumberedRunIndex(
   let count = 1;
 
   for (let index = itemIndex - 1; index >= 0; index -= 1) {
-    const siblingStyle = normalizeListItemStyle(parentNode.child(index).attrs.style);
+    const siblingStyle = normalizeListItemStyle(
+      parentNode.child(index).attrs.style,
+    );
     if (siblingStyle !== "numbered") {
       break;
     }
@@ -68,7 +72,7 @@ export function ListItemView({ editor, getPos, node }: NodeViewProps) {
   }
 
   return (
-    <NodeViewWrapper className="px-1.5 flex items-baseline">
+    <NodeViewWrapper className={cn(NODE_PADDING, "flex items-baseline")}>
       {marker && (
         <span
           contentEditable={false}
