@@ -35,11 +35,6 @@ export type RowBlock = Field | Decorator | List | InlineList | BlockGroup;
 export type FontFamily = "sans" | "serif";
 export type FontSize = "small" | "normal" | "heading";
 export type Background = "none" | "grey" | "yellow";
-export type DefaultFormat = {
-  bold?: boolean;
-  italic?: boolean;
-  underline?: boolean;
-};
 
 export type Field = {
   type: "field";
@@ -50,7 +45,6 @@ export type Field = {
   font?: FontFamily;
   size?: FontSize;
   background?: Background;
-  defaultFormat?: DefaultFormat;
 };
 
 export type Decorator = { type: "decorator"; text: string };
@@ -70,7 +64,6 @@ export type List = {
   font?: FontFamily;
   size?: FontSize;
   background?: Background;
-  defaultFormat?: DefaultFormat;
   defaultItemStyle?: ListItemStyle;
 };
 
@@ -83,5 +76,4 @@ export type InlineList = {
   font?: FontFamily;
   size?: FontSize;
   background?: Background;
-  defaultFormat?: DefaultFormat;
 };

@@ -17,7 +17,6 @@ export type {
   FontFamily,
   FontSize,
   Background,
-  DefaultFormat,
 } from "./types/template";
 
 export type {
