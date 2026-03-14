@@ -2,7 +2,7 @@ import type { FileContent } from "@pepper-apply/shared";
 
 export const templateContent: FileContent = {
   fields: {
-    name: "Jake Ryan",
+    name: "<b>Jake Ryan</b>",
   },
   lists: {},
   inlineLists: {
@@ -17,7 +17,7 @@ export const templateContent: FileContent = {
     sections: [
       {
         _key: "e2du7fap",
-        fields: { sectionTitle: "Education" },
+        fields: { sectionTitle: "<b>Education</b>" },
         lists: {},
         inlineLists: {},
         groupLists: {
@@ -26,12 +26,12 @@ export const templateContent: FileContent = {
               _key: "b9sw3qnx",
               _hidden: ["highlights", "location"],
               fields: {
-                entryTitle: "Southwestern University",
+                entryTitle: "<b>Southwestern University</b>",
                 entrySubtitle:
-                  "Bachelor of Arts in Computer Science, Minor in Business",
+                  "<i>Bachelor of Arts in Computer Science, Minor in Business</i>",
                 startDate: "<i>Aug 2018</i>",
                 endDate: "<i>May 2021</i>",
-                location: "Georgetown, TX",
+                location: "<i>Georgetown, TX</i>",
               },
               lists: { highlights: [] },
               inlineLists: {},
@@ -41,11 +41,11 @@ export const templateContent: FileContent = {
               _key: "r6ht1kyz",
               _hidden: ["highlights"],
               fields: {
-                entryTitle: "Blinn College",
-                entrySubtitle: "Associate's in Liberal Arts",
+                entryTitle: "<b>Blinn College</b>",
+                entrySubtitle: "<i>Associate's in Liberal Arts</i>",
                 startDate: "<i>Aug 2014</i>",
                 endDate: "<i>May 2018</i>",
-                location: "Bryan, TX",
+                location: "<i>Bryan, TX</i>",
               },
               lists: { highlights: [] },
               inlineLists: {},
@@ -56,7 +56,7 @@ export const templateContent: FileContent = {
       },
       {
         _key: "p3vx8cmw",
-        fields: { sectionTitle: "Experience" },
+        fields: { sectionTitle: "<b>Experience</b>" },
         lists: {},
         inlineLists: {},
         groupLists: {
@@ -64,11 +64,11 @@ export const templateContent: FileContent = {
             {
               _key: "f7ag2bnq",
               fields: {
-                entryTitle: "Undergraduate Research Assistant",
-                entrySubtitle: "Texas A&M University",
+                entryTitle: "<b>Undergraduate Research Assistant</b>",
+                entrySubtitle: "<i>Texas A&M University</i>",
                 startDate: "<i>June 2020</i>",
                 endDate: "<i>Present</i>",
-                location: "College Station, TX",
+                location: "<i>College Station, TX</i>",
               },
               lists: {
                 highlights: [
@@ -92,11 +92,11 @@ export const templateContent: FileContent = {
             {
               _key: "t1mp5rjk",
               fields: {
-                entryTitle: "Information Technology Support Specialist",
-                entrySubtitle: "Southwestern University",
+                entryTitle: "<b>Information Technology Support Specialist</b>",
+                entrySubtitle: "<i>Southwestern University</i>",
                 startDate: "<i>Sep 2018</i>",
                 endDate: "<i>Present</i>",
-                location: "Georgetown, TX",
+                location: "<i>Georgetown, TX</i>",
               },
               lists: {
                 highlights: [
@@ -120,11 +120,11 @@ export const templateContent: FileContent = {
             {
               _key: "u8nc4dhv",
               fields: {
-                entryTitle: "Artificial Intelligence Research Assistant",
-                entrySubtitle: "Southwestern University",
+                entryTitle: "<b>Artificial Intelligence Research Assistant</b>",
+                entrySubtitle: "<i>Southwestern University</i>",
                 startDate: "<i>May 2019</i>",
                 endDate: "<i>July 2019</i>",
-                location: "Georgetown, TX",
+                location: "<i>Georgetown, TX</i>",
               },
               lists: {
                 highlights: [
@@ -162,7 +162,7 @@ export const templateContent: FileContent = {
       },
       {
         _key: "c5jw9plx",
-        fields: { sectionTitle: "Projects" },
+        fields: { sectionTitle: "<b>Projects</b>" },
         lists: {},
         inlineLists: {},
         groupLists: {
@@ -171,8 +171,8 @@ export const templateContent: FileContent = {
               _key: "z2ky6tqm",
               _hidden: ["location"],
               fields: {
-                entryTitle: "Gitlytics",
-                entrySubtitle: "Python, Flask, React, PostgreSQL, Docker",
+                entryTitle: "<b>Gitlytics</b>",
+                entrySubtitle: "<i>Python, Flask, React, PostgreSQL, Docker</i>",
                 startDate: "<i>June 2020</i>",
                 endDate: "<i>Present</i>",
                 location: "",
@@ -204,8 +204,8 @@ export const templateContent: FileContent = {
               _key: "w4fb3ens",
               _hidden: ["location"],
               fields: {
-                entryTitle: "Simple Paintball",
-                entrySubtitle: "Spigot API, Java, Maven, TravisCI, Git",
+                entryTitle: "<b>Simple Paintball</b>",
+                entrySubtitle: "<i>Spigot API, Java, Maven, TravisCI, Git</i>",
                 startDate: "<i>May 2018</i>",
                 endDate: "<i>May 2020</i>",
                 location: "",
@@ -238,7 +238,7 @@ export const templateContent: FileContent = {
       },
       {
         _key: "n6qr1hbt",
-        fields: { sectionTitle: "Technical Skills" },
+        fields: { sectionTitle: "<b>Technical Skills</b>" },
         lists: {},
         inlineLists: {},
         groupLists: {

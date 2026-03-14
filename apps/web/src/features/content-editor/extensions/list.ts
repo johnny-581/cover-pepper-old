@@ -14,7 +14,6 @@ export const ListNode = Node.create({
       font: { default: "sans" },
       size: { default: "normal" },
       background: { default: "none" },
-      defaultFormat: { default: {} },
       defaultItemStyle: { default: "plain" },
       hideable: { default: false },
       placeholder: { default: "" },

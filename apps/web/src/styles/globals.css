@@ -56,7 +56,7 @@
   /* Brand palette — usable as bg-warm, text-sage, etc. */
   --color-warm: var(--warm);
   --color-warm-hover: var(--warm-hover);
-  --color-warm-subtle: var(--warm-subtle);
+  --color-warm-accent: var(--warm-accent);
   --color-rose: var(--rose);
   --color-sage: var(--sage);
 
@@ -86,7 +86,7 @@
 
   /* Brand accents */
   --warm: #f7efda;
-  --warm-subtle: #f2ebda;
+  --warm-accent: #f5f0e2;
   --rose: #d16969;
   --sage: #6a9955;
 
@@ -103,7 +103,7 @@
   --secondary-foreground: var(--neutral-800);
   --muted: var(--neutral-200);
   --muted-foreground: var(--neutral-500);
-  --accent: var(--warm);
+  --accent: var(--warm-accent);
   --accent-foreground: var(--neutral-800);
   --destructive: var(--rose);
   --border: var(--neutral-200);
@@ -131,8 +131,8 @@
 .dark {
   /* Override brand accents — neutral scale inherited from :root */
   /* --warm: #c2ad7a; */
-  --warm: rgb(148, 117, 36);
-  --warm-subtle: #2e2a1e;
+  --warm: #443c25;
+  --warm-accent: #2e2a1e;
   --rose: #e88585;
   --sage: #7ec46a;
 
@@ -148,7 +148,7 @@
   --secondary-foreground: var(--neutral-200);
   --muted: var(--neutral-800);
   --muted-foreground: var(--neutral-500);
-  --accent: var(--warm-subtle);
+  --accent: var(--warm-accent);
   --accent-foreground: var(--neutral-200);
   --destructive: var(--rose);
   --border: var(--neutral-800);

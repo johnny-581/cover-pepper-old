@@ -5,10 +5,6 @@ import { Selection } from "@tiptap/pm/state";
 import { buildEmptyGroupListInstanceJSON } from "../document/build-empty-structure";
 import { sanitizeHiddenIdsForLayout } from "../document/enforce-hidden";
 import { findGroupListDefById } from "../schema/schema-helpers";
-import {
-  applyStoredMarksFromDefaultFormat,
-  resolveNearestDefaultFormatFromPos,
-} from "../../extensions/utils/default-format-marks";
 
 type DocumentMeta = {
   templateSpec: TemplateSpec;
@@ -167,12 +163,6 @@ export function insertGroupListInstanceAt(
     Math.min(firstEditablePos ?? safeInsertPos + 1, tr.doc.content.size),
   );
   tr.setSelection(Selection.near(tr.doc.resolve(selectionPos), 1));
-
-  if (firstEditablePos != null) {
-    const resolvedSelection = tr.doc.resolve(selectionPos);
-    const defaultFormat = resolveNearestDefaultFormatFromPos(resolvedSelection);
-    applyStoredMarksFromDefaultFormat(tr, state.schema, defaultFormat);
-  }
 
   tr.scrollIntoView();
 

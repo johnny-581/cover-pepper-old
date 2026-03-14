@@ -7,9 +7,6 @@ import { type EditorState, type Transaction } from "@tiptap/pm/state";
 import { ListItemView } from "../components/node-views/ListItemView";
 import { maybeDeleteEmptyGroupListInstanceAndJump } from "./utils/group-list-instance-backspace";
 import {
-  applyStoredMarksFromDefaultFormat,
-} from "./utils/default-format-marks";
-import {
   deleteCurrentItemAndJump,
   deleteItemAndSelectNeighbor,
   dispatchSelectionJumpWithUndoMeta,
@@ -48,24 +45,16 @@ function resolveNextListItemStyle(
   return normalizeListItemStyle(listNode.attrs.defaultItemStyle, "plain");
 }
 
-function splitItemWithStyleAndSeed(
+function splitItemWithStyle(
   state: EditorState,
   dispatch: (tr: Transaction) => void,
   view: Parameters<ReturnType<typeof splitListItem>>[2],
   nextStyle: ListItemStyle,
-  defaultFormat: unknown,
 ): boolean {
   const listItemType = state.schema.nodes.listItem;
   if (!listItemType) return false;
 
-  return splitListItem(listItemType, { style: nextStyle })(
-    state,
-    (tr) => {
-      applyStoredMarksFromDefaultFormat(tr, state.schema, defaultFormat);
-      dispatch(tr);
-    },
-    view,
-  );
+  return splitListItem(listItemType, { style: nextStyle })(state, dispatch, view);
 }
 
 function splitItemWithCurrentBehavior(
@@ -92,7 +81,6 @@ function createListStyleInputRule(
         return null;
       }
 
-      const listNode = $ruleStart.node(context.listDepth);
       if (range.from !== $ruleStart.start()) {
         return null;
       }
@@ -107,8 +95,6 @@ function createListStyleInputRule(
             ...listItemNode.attrs,
             style,
           });
-
-        applyStoredMarksFromDefaultFormat(tr, state.schema, listNode.attrs.defaultFormat);
 
         if (dispatch) {
           dispatch(tr.scrollIntoView());
@@ -179,12 +165,11 @@ export const ListItemNode = Node.create({
 
         if (!empty || !isItemEmpty(listItemNode)) {
           const nextStyle = resolveNextListItemStyle(listNode, listItemNode);
-          return splitItemWithStyleAndSeed(
+          return splitItemWithStyle(
             state,
             editor.view.dispatch,
             editor.view,
             nextStyle,
-            listNode.attrs.defaultFormat,
           );
         }
 
@@ -244,7 +229,6 @@ export const ListItemNode = Node.create({
             ...listItemNode.attrs,
             style: "plain",
           });
-          applyStoredMarksFromDefaultFormat(tr, state.schema, listNode.attrs.defaultFormat);
           editor.view.dispatch(tr.scrollIntoView());
           return true;
         }

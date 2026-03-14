@@ -4,7 +4,6 @@ import { splitListItem } from "@tiptap/pm/schema-list";
 import { type EditorState, type Transaction } from "@tiptap/pm/state";
 import { InlineListItemView } from "../components/node-views/InlineListItemView";
 import { maybeDeleteEmptyGroupListInstanceAndJump } from "./utils/group-list-instance-backspace";
-import { applyStoredMarksFromDefaultFormat } from "./utils/default-format-marks";
 import {
   deleteCurrentItemAndJump,
   deleteItemAndSelectNeighbor,
@@ -21,19 +20,11 @@ function splitItemWithSeed(
   state: EditorState,
   dispatch: (tr: Transaction) => void,
   view: Parameters<ReturnType<typeof splitListItem>>[2],
-  defaultFormat: unknown,
 ): boolean {
   const inlineListItemType = state.schema.nodes.inlineListItem;
   if (!inlineListItemType) return false;
 
-  return splitListItem(inlineListItemType)(
-    state,
-    (tr) => {
-      applyStoredMarksFromDefaultFormat(tr, state.schema, defaultFormat);
-      dispatch(tr);
-    },
-    view,
-  );
+  return splitListItem(inlineListItemType)(state, dispatch, view);
 }
 
 export const InlineListItemNode = Node.create({
@@ -77,7 +68,6 @@ export const InlineListItemNode = Node.create({
             state,
             editor.view.dispatch,
             editor.view,
-            inlineListNode.attrs.defaultFormat,
           );
         }
 

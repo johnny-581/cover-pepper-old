@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { NODE_PADDING, nodeAttrClasses } from "./node-view-utils";
 
 export function FieldView({ node }: NodeViewProps) {
-  const { font, size, background, sizing, defaultFormat, placeholder } =
+  const { font, size, background, sizing, placeholder } =
     node.attrs;
 
   // Field always has exactly one paragraph child
@@ -20,7 +20,7 @@ export function FieldView({ node }: NodeViewProps) {
         "relative min-w-0 rounded",
         sizing === "fill" && "flex-1",
         sizing === "hug" && "shrink-0",
-        ...nodeAttrClasses({ font, size, background, defaultFormat }),
+        ...nodeAttrClasses({ font, size, background }),
       )}
     >
       {/* Invisible placeholder text to reserve width for hug-sized fields */}

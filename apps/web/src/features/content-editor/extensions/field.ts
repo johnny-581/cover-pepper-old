@@ -120,7 +120,6 @@ export const FieldNode = Node.create({
       font: { default: "sans" },
       size: { default: "normal" },
       background: { default: "none" },
-      defaultFormat: { default: {} },
       hideable: { default: false },
       placeholder: { default: "" },
     };
