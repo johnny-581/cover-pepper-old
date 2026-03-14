@@ -2,9 +2,16 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (@media (prefers-color-scheme: dark));
+/* Dark mode via `.dark` class on <html> */
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Merriweather", serif;
+
+  --text-sm: 0.9rem;
+  --text-base: 1rem;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -12,6 +19,8 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* shadcn semantic */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -44,148 +53,137 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* ── Brand palette ─────────────────────────────────────────────────── */
-  --color-cream: var(--cream);
-  --color-cream-dim: var(--cream-dim);
-  --color-ink: var(--ink);
+  /* Brand palette — usable as bg-warm, text-sage, etc. */
+  --color-warm: var(--warm);
+  --color-warm-hover: var(--warm-hover);
+  --color-warm-subtle: var(--warm-subtle);
   --color-rose: var(--rose);
   --color-sage: var(--sage);
-  --color-gray-100: var(--gray-100);
-  --color-gray-200: var(--gray-200);
-  --color-gray-300: var(--gray-300);
-  --color-gray-500: var(--gray-500);
+
+  /* Neutral scale */
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
 }
+
+/* ── Primitives (shared across both modes) ─────────────────────────── */
 
 :root {
   --radius: 0.625rem;
 
-  /* ── Brand color primitives ──────────────────────────────────────────── */
-  --cream: oklch(0.955 0.033 85.7); /* #F7EFDA */
-  --cream-dim: oklch(0.926 0.038 85.7); /* #EFE4C7 */
-  --ink: oklch(0.19 0.002 75); /* #2C2C2B */
-  --rose: oklch(0.598 0.142 18.5); /* #D16969 */
-  --sage: oklch(0.573 0.108 140); /* #6A9955 */
-  --gray-100: oklch(0.979 0.003 75); /* #F9F8F7 */
-  --gray-200: oklch(0.962 0.003 75); /* #F2F2EF */
-  --gray-300: oklch(0.948 0.002 75); /* #EEEEEC */
-  --gray-500: oklch(0.606 0 0); /* #8F8F8F */
+  /* Neutral scale — 7 stops, warm-tinted */
+  --neutral-100: #f9f8f7; /* light background */
+  --neutral-200: #edede9; /* light border */
+  --neutral-400: #c5c2b6;
+  --neutral-500: #8f8f8f; /* muted text*/
+  --neutral-600: #413f3a;
+  --neutral-800: #2c2c2b; /* dark border */
+  --neutral-900: #1c1c1b; /* dark background */
 
-  /* ── shadcn semantic tokens — mapped to brand ────────────────────────── */
-  --background: var(--gray-100);
-  --foreground: var(--ink);
-  --card: oklch(1 0 0); /* white */
-  --card-foreground: var(--ink);
-  --popover: oklch(1 0 0);
-  --popover-foreground: var(--ink);
-  --primary: var(--ink);
-  --primary-foreground: var(--cream);
-  --secondary: var(--gray-300);
-  --secondary-foreground: var(--ink);
-  --muted: var(--gray-200);
-  --muted-foreground: var(--gray-500);
-  --accent: var(--cream);
-  --accent-foreground: var(--ink);
+  /* Brand accents */
+  --warm: #f7efda;
+  --warm-subtle: #f2ebda;
+  --rose: #d16969;
+  --sage: #6a9955;
+
+  /* ── Light mode semantic tokens ──────────────────────────────────── */
+  --background: var(--neutral-100);
+  --foreground: var(--neutral-800);
+  --card: var(--neutral-100);
+  --card-foreground: var(--neutral-800);
+  --popover: var(--neutral-100);
+  --popover-foreground: var(--neutral-800);
+  --primary: var(--warm);
+  --primary-foreground: var(--neutral-800);
+  --secondary: var(--neutral-200);
+  --secondary-foreground: var(--neutral-800);
+  --muted: var(--neutral-200);
+  --muted-foreground: var(--neutral-500);
+  --accent: var(--warm);
+  --accent-foreground: var(--neutral-800);
   --destructive: var(--rose);
-  --border: var(--gray-300);
-  --input: var(--gray-300);
-  --ring: var(--gray-500);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: var(--gray-100);
-  --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--ink);
-  --sidebar-primary-foreground: var(--cream);
-  --sidebar-accent: var(--gray-200);
-  --sidebar-accent-foreground: var(--ink);
-  --sidebar-border: var(--gray-300);
-  --sidebar-ring: var(--gray-500);
+  --border: var(--neutral-200);
+  --input: var(--neutral-200);
+  --ring: var(--neutral-200);
+
+  --chart-1: #e8763c;
+  --chart-2: #4a9e8e;
+  --chart-3: #3b5e82;
+  --chart-4: #d9b635;
+  --chart-5: #d9a030;
+
+  --sidebar: var(--neutral-100);
+  --sidebar-foreground: var(--neutral-800);
+  --sidebar-primary: var(--neutral-800);
+  --sidebar-primary-foreground: var(--warm);
+  --sidebar-accent: var(--neutral-200);
+  --sidebar-accent-foreground: var(--neutral-800);
+  --sidebar-border: var(--neutral-200);
+  --sidebar-ring: var(--neutral-200);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* ── Dark-mode brand primitives ────────────────────────────────────── 
-         Warm, desaturated darks that keep the earthy/cream DNA.
-         Backgrounds carry a subtle amber-brown warmth rather than going
-         neutral or blue-cold.
-      ─────────────────────────────────────────────────────────────────────── */
+/* ── Dark mode ─────────────────────────────────────────────────────── */
 
-    /* Cream lightens slightly and gains warmth so it pops on dark bg */
-    --cream: oklch(0.93 0.038 82); /* softer warm ivory */
-    --cream-dim: oklch(0.82 0.045 80); /* muted gold for hover states */
+.dark {
+  /* Override brand accents — neutral scale inherited from :root */
+  /* --warm: #c2ad7a; */
+  --warm: rgb(148, 117, 36);
+  --warm-subtle: #2e2a1e;
+  --rose: #e88585;
+  --sage: #7ec46a;
 
-    /* Ink becomes the light foreground — warm off-white, not clinical */
-    --ink: oklch(0.935 0.006 75); /* warm near-white */
+  --background: var(--neutral-900);
+  --foreground: var(--neutral-200);
+  --card: var(--neutral-900);
+  --card-foreground: var(--neutral-200);
+  --popover: var(--neutral-900);
+  --popover-foreground: var(--neutral-200);
+  --primary: var(--warm);
+  --primary-foreground: var(--neutral-200);
+  --secondary: var(--neutral-800);
+  --secondary-foreground: var(--neutral-200);
+  --muted: var(--neutral-800);
+  --muted-foreground: var(--neutral-500);
+  --accent: var(--warm-subtle);
+  --accent-foreground: var(--neutral-200);
+  --destructive: var(--rose);
+  --border: var(--neutral-800);
+  --input: var(--neutral-800);
+  --ring: var(--neutral-800);
 
-    /* Rose lifts for readability; keeps its dusty character */
-    --rose: oklch(0.68 0.155 16); /* brighter but still muted coral-red */
+  --chart-1: #d99140;
+  --chart-2: #5ea992;
+  --chart-3: #c96a5e;
+  --chart-4: #c4b342;
+  --chart-5: #7e6eb5;
 
-    /* Sage brightens to stay visible on dark surfaces */
-    --sage: oklch(0.66 0.12 142); /* lifted green, still earthy */
-
-    /* Dark grays with a warm brown-amber undertone (hue 75) */
-    --gray-100: oklch(0.16 0.006 75); /* deepest surface — page bg */
-    --gray-200: oklch(0.2 0.006 75); /* raised surface / subtle divider */
-    --gray-300: oklch(0.26 0.005 75); /* borders, input fills */
-    --gray-500: oklch(0.55 0.008 75); /* secondary text / placeholders */
-
-    /* ── Semantic mappings ──────────────────────────────────────────────── */
-    --background: var(--gray-100); /* warm charcoal */
-    --foreground: oklch(0.92 0.006 75); /* warm off-white body text */
-
-    --card: var(--gray-200); /* elevated card surface */
-    --card-foreground: oklch(0.92 0.006 75);
-
-    --popover: var(--gray-200);
-    --popover-foreground: oklch(0.92 0.006 75);
-
-    /* Primary flips to cream — the hero brand accent on dark */
-    --primary: oklch(0.93 0.038 82);
-    --primary-foreground: oklch(0.16 0.006 75);
-
-    --secondary: var(--gray-300);
-    --secondary-foreground: oklch(0.88 0.006 75);
-
-    --muted: oklch(0.22 0.006 75); /* slightly lifted for layered muted bg */
-    --muted-foreground: var(--gray-500);
-
-    /* Accent uses cream-dim — a richer gold that reads well in dark UI */
-    --accent: oklch(0.3 0.012 78); /* subtle warm tint for hover states */
-    --accent-foreground: oklch(0.93 0.038 82);
-
-    --destructive: var(--rose);
-
-    --border: oklch(0.28 0.008 75); /* warm dark border, low contrast */
-    --input: oklch(0.24 0.007 75); /* slightly visible input bg */
-    --ring: oklch(0.65 0.035 82); /* warm gold focus ring */
-
-    /* ── Chart palette — vibrant but warm-shifted for dark ─────────────── */
-    --chart-1: oklch(0.72 0.18 55); /* warm amber-orange */
-    --chart-2: oklch(0.66 0.12 170); /* teal-sage */
-    --chart-3: oklch(0.6 0.14 18); /* dusty rose */
-    --chart-4: oklch(0.78 0.15 90); /* golden-yellow */
-    --chart-5: oklch(0.58 0.12 280); /* muted lavender */
-
-    /* ── Sidebar ───────────────────────────────────────────────────────── */
-    --sidebar: oklch(0.14 0.006 75); /* slightly deeper than page bg */
-    --sidebar-foreground: oklch(0.88 0.006 75);
-    --sidebar-primary: oklch(0.93 0.038 82); /* cream accent */
-    --sidebar-primary-foreground: oklch(0.16 0.006 75);
-    --sidebar-accent: oklch(0.24 0.008 75); /* subtle warm highlight */
-    --sidebar-accent-foreground: oklch(0.9 0.006 75);
-    --sidebar-border: oklch(0.24 0.006 75);
-    --sidebar-ring: oklch(0.65 0.035 82);
-  }
+  --sidebar: var(--neutral-900);
+  --sidebar-foreground: var(--neutral-200);
+  --sidebar-primary: var(--warm);
+  --sidebar-primary-foreground: var(--neutral-800);
+  --sidebar-accent: var(--neutral-800);
+  --sidebar-accent-foreground: var(--neutral-200);
+  --sidebar-border: var(--neutral-800);
+  --sidebar-ring: var(--neutral-800);
 }
+
+/* ── Base resets ────────────────────────────────────────────────────── */
 
 @layer base {
-  * {
+  *,
+  *::before,
+  *::after {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 

@@ -6,13 +6,13 @@ export const fontClasses: Record<string, string> = {
 export const sizeClasses: Record<string, string> = {
   small: "text-sm",
   normal: "text-base",
-  heading: "text-2xl",
+  heading: "text-3xl pt-4 pb-2",
 };
 
 export const bgClasses: Record<string, string> = {
   none: "",
   grey: "bg-muted",
-  yellow: "bg-cream dark:bg-cream-dim",
+  yellow: "bg-accent text-accent-foreground",
 };
 
 /** Shared padding applied to all editable node wrappers (field, listItem, inlineListItem). */

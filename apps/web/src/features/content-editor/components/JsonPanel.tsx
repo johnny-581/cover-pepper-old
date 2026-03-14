@@ -4,9 +4,9 @@ export function JsonPanel() {
   const content = useEditorStore((s) => s.content);
 
   return (
-    <div className="h-screen sticky top-0 flex flex-col bg-zinc-900 dark:bg-zinc-950 text-zinc-100 border-l border-zinc-700 dark:border-zinc-800">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-700 dark:border-zinc-800 flex-shrink-0">
-        <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+    <div className="sticky top-0 flex h-screen flex-col border-l border-border bg-muted/30 text-foreground">
+      <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-2">
+        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           FileContent
         </span>
       </div>
